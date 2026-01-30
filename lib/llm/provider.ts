@@ -48,7 +48,7 @@ export async function generateChatCompletion(
 ): Promise<string> {
     const finalConfig: LLMConfig = {
         provider: 'groq',
-        model: config.model || 'llama-3.1-8b-instant',
+        model: config.model || process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
         temperature: config.temperature ?? 0.7,
         maxTokens: config.maxTokens || 4096,
     };

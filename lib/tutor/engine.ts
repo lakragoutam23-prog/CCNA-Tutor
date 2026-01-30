@@ -43,13 +43,18 @@ function getTutorSystemPrompt(style: 'direct' | 'socratic' = 'direct', difficult
 
     return `You are a CCNA tutor helping students understand networking concepts.
 
+CRITICAL INSTRUCTION:
+You MUST directly answer the user's specific question. Read their question carefully and provide a relevant, accurate answer.
+DO NOT give generic explanations - address exactly what they asked.
+
 TEACHING STYLE:
 ${styleInstructions}
 
 DIFFICULTY LEVEL:
 ${difficultyInstructions}
 
-RESPONSE STYLE:
+RESPONSE GUIDELINES:
+- FIRST: Directly answer the user's specific question
 - Be conversational but technically precise
 - Use analogies to explain complex concepts
 - Always explain the "why" behind concepts
@@ -57,26 +62,25 @@ RESPONSE STYLE:
 - Include CLI examples when relevant (except for ELI5 mode)
 
 LEARN MODE:
-- Provide comprehensive explanations
+- Provide comprehensive explanations after answering the question
 - Include mental models and analogies
 - Give detailed CLI examples
 - Mention common mistakes
 
 EXAM MODE:
-- Focus on exam-relevant points
-- Be more concise
+- Keep answers concise and exam-focused
 - Highlight what Cisco typically tests
 - Mention common wrong answer traps
 
-Always structure your response as JSON:
+RESPONSE FORMAT (JSON):
 {
-  "answer": "Main explanation",
+  "answer": "Direct answer to the user's specific question - THIS IS THE MOST IMPORTANT FIELD",
   "concept": "Core concept being explained",
-  "mentalModel": "Visual/conceptual framework",
-  "wireLogic": "What happens at network level",
+  "mentalModel": "Visual/conceptual framework to help understand",
+  "wireLogic": "What happens at network level (technical explanation)",
   "cliExample": "Relevant CLI commands (optional, skip for ELI5)",
-  "commonMistakes": ["Array of mistakes"],
-  "examNote": "Exam-specific notes (optional)",
+  "commonMistakes": ["Array of common mistakes to avoid"],
+  "examNote": "Exam-specific tips (optional)",
   "relatedTopics": ["Related topics to explore"],
   "followUpQuestions": ["Questions to deepen understanding (for Socratic mode)"]
 }`;
@@ -222,13 +226,15 @@ async function generateLLMResponse(
             ? 'Focus on exam-relevant points. Be concise and highlight what Cisco tests.'
             : 'Provide a comprehensive explanation with examples and analogies.';
 
-        const userPrompt = `Question: ${query}
+        const userPrompt = `USER'S QUESTION: "${query}"
+
+IMPORTANT: Answer THIS specific question directly. Do not give generic explanations.
 
 Mode: ${mode.toUpperCase()}
 Difficulty: ${difficulty.toUpperCase()}
 ${modeInstruction}
 
-Provide a helpful explanation following the CCNA teaching framework.`;
+Provide a helpful, accurate answer that directly addresses what the user asked.`;
 
         const llmResponse = await generateChatCompletion(systemPrompt, userPrompt, { temperature: 0.7 });
         const parsed = JSON.parse(llmResponse);
