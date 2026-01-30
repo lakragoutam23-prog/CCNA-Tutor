@@ -26,10 +26,8 @@ export async function GET(request: NextRequest) {
             } catch { }
         }
 
-        // Determine role based on ADMIN_EMAILS
-        const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
-        const isAdmin = adminEmails.includes(user.email?.toLowerCase() || '');
-        const role = isAdmin ? 'super_admin' : 'student';
+        // Use role from cookie (set by signin route from DB)
+        const role = (user as any).role || 'student';
 
         return NextResponse.json({
             success: true,
