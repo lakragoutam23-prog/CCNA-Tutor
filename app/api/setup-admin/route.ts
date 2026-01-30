@@ -5,7 +5,9 @@ import { eq } from 'drizzle-orm';
 
 const NEON_AUTH_URL = process.env.NEON_AUTH_BASE_URL || 'https://ep-wandering-hill-ah66iehg.neonauth.c-3.us-east-1.aws.neon.tech/neondb/auth';
 export async function GET(request: NextRequest) {
-    const ORIGIN = request.headers.get('origin') || 'http://localhost:3003';
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host');
+    const ORIGIN = request.headers.get('origin') || `${protocol}://${host}`;
     try {
         const email = 'admin@CCNA.com';
         const password = 'adminCCNA';

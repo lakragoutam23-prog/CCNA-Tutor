@@ -8,8 +8,10 @@ const NEON_AUTH_URL = process.env.NEON_AUTH_BASE_URL || 'https://ep-wandering-hi
 
 export async function POST(request: NextRequest) {
     try {
-        // Dynamically detect the base URL from the request origin
-        const APP_URL = request.headers.get('origin') || 'http://localhost:3003';
+        // Dynamically detect the base URL from the request origin or host
+        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        const host = request.headers.get('host');
+        const APP_URL = request.headers.get('origin') || `${protocol}://${host}`;
         const body = await request.json();
         const { email, password, name } = body;
 
