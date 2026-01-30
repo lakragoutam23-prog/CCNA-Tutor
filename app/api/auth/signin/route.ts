@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
             }
 
             // SYNC USER TO LOCAL DATABASE (upsert on login)
+            let userRole = 'student';
+
             try {
                 const userEmail = (data.user?.email || email).toLowerCase();
                 const userName = data.user?.name || email.split('@')[0];
@@ -65,20 +67,22 @@ export async function POST(request: NextRequest) {
                     .where(eq(users.email, userEmail))
                     .limit(1);
 
-                if (!existingUser) {
-                    // Create user in local DB during login (for users created before this fix)
+                if (existingUser) {
+                    // User exists, use their defined role
+                    userRole = existingUser.role;
+                } else {
+                    // Create user in local DB
                     const userId = data.user?.id || `user_${Date.now()}`;
                     await db.insert(users).values({
                         id: userId,
                         email: userEmail,
                         name: userName,
-                        role: 'student',
+                        role: 'student', // Default role
                     });
-                    console.log(`[signin] Created missing user in local DB: ${userEmail}`);
+                    console.log(`[signin] Created new user in local DB: ${userEmail}`);
                 }
             } catch (dbError) {
                 console.error('[signin] Failed to sync user to local DB:', dbError);
-                // Continue - don't fail signin if DB sync fails
             }
 
             // Set session cookies
@@ -93,10 +97,12 @@ export async function POST(request: NextRequest) {
                 path: '/',
             });
 
+            // Store role in the user cookie so session.ts can read it
             cookieStore.set('neon_auth_user', JSON.stringify({
                 email: data.user?.email || email,
                 id: data.user?.id || 'user-id',
                 name: data.user?.name || email.split('@')[0],
+                role: userRole,
             }), {
                 httpOnly: false,
                 secure: process.env.NODE_ENV === 'production',
@@ -105,15 +111,14 @@ export async function POST(request: NextRequest) {
                 path: '/',
             });
 
-            // Check if user is admin for redirect
-            const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
-            const isAdmin = adminEmails.includes(email.toLowerCase());
+            // Redirect based on DB role
+            const isAdmin = ['super_admin', 'content_admin'].includes(userRole);
             const redirectUrl = isAdmin ? '/dashboard' : '/learn';
 
-            console.log(`[signin] Success! User is admin: ${isAdmin}. Redirecting to ${redirectUrl}`);
+            console.log(`[signin] Success! Role: ${userRole}. Redirecting to ${redirectUrl}`);
             return NextResponse.json({
                 success: true,
-                user: data.user || { email },
+                user: { ...(data.user || { email }), role: userRole },
                 redirectUrl,
             });
 

@@ -17,14 +17,13 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
                 const user = JSON.parse(userCookie.value);
                 const email = user.email || '';
 
-                // Check if user is admin based on ADMIN_EMAILS
-                const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
-                const isAdminUser = adminEmails.includes(email.toLowerCase());
+                // Use role from cookie (set by signin route from DB)
+                const userRole = user.role || 'student';
 
                 return {
                     id: user.id || 'user-id',
                     email: email,
-                    role: isAdminUser ? 'super_admin' : 'student',
+                    role: userRole,
                 };
             } catch {
                 return null;
@@ -59,6 +58,6 @@ export function canManageUsers(role: string): boolean {
 }
 
 export function isAdminEmail(email: string): boolean {
-    const adminEmails = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase());
-    return adminEmails.includes(email.toLowerCase());
+    // Deprecated: Role checks should be done via getUser(), not just email string
+    return false;
 }
