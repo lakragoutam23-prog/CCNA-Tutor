@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, isAdmin } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { knowledgeNodes, questions, labs, users, generationJobs, quizAttempts, userProgress } from '@/lib/db/schema';
-import { eq, sql, and, isNull } from 'drizzle-orm';
+import { eq, sql, and, isNull, notInArray } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
     try {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
             db.select({ count: sql<number>`count(*)::int` }).from(knowledgeNodes).where(and(eq(knowledgeNodes.status, 'draft'), isNull(knowledgeNodes.deletedAt))),
             db.select({ count: sql<number>`count(*)::int` }).from(questions),
             db.select({ count: sql<number>`count(*)::int` }).from(labs),
-            db.select({ count: sql<number>`count(*)::int` }).from(users),
+            db.select({ count: sql<number>`count(*)::int` }).from(users).where(notInArray(users.role, ['super_admin', 'admin', 'content_admin', 'faculty_reviewer'])),
             db.select({ count: sql<number>`count(*)::int` }).from(generationJobs).where(eq(generationJobs.status, 'running')),
             db.select({ count: sql<number>`count(*)::int` }).from(quizAttempts),
             db.select({ avg: sql<number>`avg(${quizAttempts.score})::float` }).from(quizAttempts),

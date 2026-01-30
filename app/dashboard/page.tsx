@@ -36,12 +36,7 @@ export default function DashboardPage() {
     }, []);
 
     const statCards = [
-        { label: 'Total Knowledge Nodes', value: stats?.totalNodes, icon: '📚', color: 'bg-blue-500', href: '/dashboard/knowledge' },
-        { label: 'Published', value: stats?.publishedNodes, icon: '✅', color: 'bg-green-500', href: '/dashboard/knowledge?status=published' },
-        { label: 'Draft Nodes', value: stats?.draftNodes, icon: '📝', color: 'bg-gray-500', href: '/dashboard/knowledge?status=draft' },
         { label: 'Active Users', value: stats?.activeUsers, icon: '👥', color: 'bg-purple-500', href: '/dashboard/users' },
-        { label: 'Quizzes', value: stats?.totalQuizzes, icon: '⚡', color: 'bg-orange-500', href: '/dashboard/quizzes' },
-        { label: 'Labs', value: stats?.totalLabs, icon: '💻', color: 'bg-cyan-500', href: '/dashboard/labs' },
     ];
 
     const quickActions = [
