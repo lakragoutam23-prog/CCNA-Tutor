@@ -8,10 +8,17 @@ const NEON_AUTH_URL = process.env.NEON_AUTH_BASE_URL || 'https://ep-wandering-hi
 
 export async function POST(request: NextRequest) {
     try {
-        // Dynamically detect the base URL from the request origin or host
-        const protocol = request.headers.get('x-forwarded-proto') || 'http';
+        // Dynamically detect the base URL - prioritize env var if set
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
         const host = request.headers.get('host');
-        const APP_URL = request.headers.get('origin') || `${protocol}://${host}`;
+        const originHeader = request.headers.get('origin');
+        const envUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+        // Priority: 1. Env var, 2. Origin header, 3. Constructed from host
+        const APP_URL = envUrl || originHeader || `${protocol}://${host}`;
+
+        console.log(`[signin] URL Detection - envUrl: ${envUrl}, origin: ${originHeader}, host: ${host}, final: ${APP_URL}`);
+
         const body = await request.json();
         const { email, password } = body;
 
