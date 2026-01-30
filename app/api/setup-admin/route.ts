@@ -4,10 +4,8 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const NEON_AUTH_URL = process.env.NEON_AUTH_BASE_URL || 'https://ep-wandering-hill-ah66iehg.neonauth.c-3.us-east-1.aws.neon.tech/neondb/auth';
-// Use hardcoded localhost for origin to pass check, as this is a server-side administrative script
-const ORIGIN = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003';
-
 export async function GET(request: NextRequest) {
+    const ORIGIN = request.headers.get('origin') || 'http://localhost:3003';
     try {
         const email = 'admin@CCNA.com';
         const password = 'adminCCNA';

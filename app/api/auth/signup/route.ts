@@ -5,10 +5,11 @@ import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 const NEON_AUTH_URL = process.env.NEON_AUTH_BASE_URL || 'https://ep-wandering-hill-ah66iehg.neonauth.c-3.us-east-1.aws.neon.tech/neondb/auth';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003';
 
 export async function POST(request: NextRequest) {
     try {
+        // Dynamically detect the base URL from the request origin
+        const APP_URL = request.headers.get('origin') || 'http://localhost:3003';
         const body = await request.json();
         const { email, password, name } = body;
 
