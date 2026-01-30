@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
             db.select({ count: sql<number>`count(*)::int` }).from(knowledgeNodes).where(and(eq(knowledgeNodes.status, 'draft'), isNull(knowledgeNodes.deletedAt))),
             db.select({ count: sql<number>`count(*)::int` }).from(questions),
             db.select({ count: sql<number>`count(*)::int` }).from(labs),
-            db.select({ count: sql<number>`count(*)::int` }).from(users).where(notInArray(users.role, ['super_admin', 'admin', 'content_admin', 'faculty_reviewer'])),
+            db.select({ count: sql<number>`count(*)::int` }).from(users).where(eq(users.role, 'student')),
             db.select({ count: sql<number>`count(*)::int` }).from(generationJobs).where(eq(generationJobs.status, 'running')),
             db.select({ count: sql<number>`count(*)::int` }).from(quizAttempts),
             db.select({ avg: sql<number>`avg(${quizAttempts.score})::float` }).from(quizAttempts),
