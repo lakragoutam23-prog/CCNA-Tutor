@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser, isAdmin } from '@/lib/auth/session';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, notInArray } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
     try {
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
                 createdAt: users.createdAt,
             })
             .from(users)
+            .where(notInArray(users.role, ['super_admin', 'admin', 'content_admin', 'faculty_reviewer']))
             .orderBy(desc(users.createdAt))
             .limit(100);
 

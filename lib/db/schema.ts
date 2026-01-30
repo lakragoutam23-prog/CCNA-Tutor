@@ -17,7 +17,7 @@ export const difficultyEnum = pgEnum('difficulty', ['beginner', 'intermediate', 
 export const statusEnum = pgEnum('status', ['draft', 'approved', 'published', 'archived']);
 export const moduleEnum = pgEnum('module', ['ccna', 'netsec', 'ccnp', 'aws']);
 export const generatedByEnum = pgEnum('generated_by', ['llm', 'human']);
-export const roleEnum = pgEnum('role', ['student', 'faculty_reviewer', 'content_admin', 'super_admin']);
+export const roleEnum = pgEnum('role', ['student', 'faculty_reviewer', 'content_admin', 'super_admin', 'admin']);
 export const jobStatusEnum = pgEnum('job_status', ['pending', 'running', 'completed', 'failed', 'cancelled']);
 
 export const questionTypeEnum = pgEnum('question_type', [
