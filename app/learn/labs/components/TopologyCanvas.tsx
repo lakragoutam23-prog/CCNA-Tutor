@@ -9,7 +9,8 @@ import ReactFlow, {
     MarkerType,
     Handle,
     Position,
-    OnConnect
+    OnConnect,
+    ConnectionMode
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { NetworkTopology } from '@/types';
@@ -45,7 +46,7 @@ const DeviceNode = ({ data }: { data: { label: string, type: 'router' | 'switch'
                             type="source"
                             position={isEven ? Position.Left : Position.Right}
                             id={iface}
-                            className={`!w-2 !h-2 !bg-gray-400`}
+                            className={`!w-3 !h-3 !bg-gray-400`}
                             isConnectable={true}
                         />
                     </div>
@@ -139,6 +140,7 @@ export default function TopologyCanvas({ topology, activeDeviceId, onDeviceSelec
                 onNodeClick={onNodeClick}
                 onConnect={handleConnect}
                 onNodeDragStop={onNodeDragStop}
+                connectionMode={ConnectionMode.Loose}
                 fitView
                 attributionPosition="bottom-right"
             >
