@@ -34,7 +34,7 @@ export default function HomePage() {
                         <Link href="/login" className="btn-primary btn-lg w-full sm:w-auto">
                             Start Learning Free
                         </Link>
-                        <Link href="#features" className="btn-outline text-white border-white hover:bg-white/10 btn-lg w-full sm:w-auto">
+                        <Link href="#features" className="btn border border-white text-white bg-transparent hover:bg-white/10 btn-lg w-full sm:w-auto">
                             Explore Features
                         </Link>
                     </div>
