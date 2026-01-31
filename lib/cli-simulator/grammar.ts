@@ -242,6 +242,7 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                 '<name>': { token: '<name>', isArgument: true, argName: 'name' }
             }
         },
+        'do': { token: 'do' },
         'exit': { token: 'exit' },
         'end': { token: 'end' }
     },

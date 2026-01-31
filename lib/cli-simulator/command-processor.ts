@@ -19,7 +19,7 @@ export async function processCommand(state: CLIState, input: string): Promise<CL
     let effectiveTokens = tokens;
 
     // Support 'do' in config modes
-    if (tokens[0] === 'do' && state.mode !== 'user' && state.mode !== 'privileged') {
+    if (tokens[0].toLowerCase() === 'do' && state.mode !== 'user' && state.mode !== 'privileged') {
         executionMode = 'privileged';
         effectiveTokens = tokens.slice(1);
         if (effectiveTokens.length === 0) {
@@ -288,7 +288,7 @@ function generateShowOutput(state: CLIState, args: Record<string, string>, fullC
         });
         return out;
     }
-    if (fullCmd.includes('running-config') || fullCmd.includes('run')) {
+    if (fullCmd.includes('running-config') || fullCmd.includes('exclude') || fullCmd.includes('run') || fullCmd === 'sh run') {
         let out = `Building configuration...\n\nCurrent configuration : 1024 bytes\n!\nversion 15.1\nhostname ${state.hostname}\n!\n`;
         Object.entries(state.interfaces).forEach(([name, data]) => {
             out += `interface ${name}\n`;
@@ -322,7 +322,7 @@ function generateShowOutput(state: CLIState, args: Record<string, string>, fullC
         out += 'end';
         return out;
     }
-    if (fullCmd.includes('show vlan')) {
+    if (fullCmd.includes('show vlan') || fullCmd.includes('sh vlan')) {
         let out = 'VLAN Name                             Status    Ports\n---- -------------------------------- --------- -------------------------------\n';
         state.vlans?.forEach(v => {
             const namePad = ' '.repeat(Math.max(1, 32 - v.name.length));
