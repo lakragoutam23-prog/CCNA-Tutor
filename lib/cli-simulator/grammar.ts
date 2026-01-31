@@ -10,7 +10,7 @@ export interface CommandNode {
     minMode?: string; // Minimum mode required
 }
 
-export type CLIContext = 'user' | 'privileged' | 'global_config' | 'interface_config' | 'router_config' | 'line_config' | 'vlan_config';
+import { CLIContext } from '@/types';
 
 /**
  * grammar.ts
@@ -653,6 +653,28 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
             token: 'dns-server',
             children: {
                 '<ip>': { token: '<ip>', isArgument: true, argName: 'dnsIp' }
+            }
+        },
+        'exit': { token: 'exit' },
+        'end': { token: 'end' }
+    },
+    acl_config: {
+        'permit': {
+            token: 'permit',
+            children: {
+                'ip': { token: 'ip' },
+                'tcp': { token: 'tcp' },
+                'udp': { token: 'udp' },
+                'icmp': { token: 'icmp' }
+            }
+        },
+        'deny': {
+            token: 'deny',
+            children: {
+                'ip': { token: 'ip' },
+                'tcp': { token: 'tcp' },
+                'udp': { token: 'udp' },
+                'icmp': { token: 'icmp' }
             }
         },
         'exit': { token: 'exit' },

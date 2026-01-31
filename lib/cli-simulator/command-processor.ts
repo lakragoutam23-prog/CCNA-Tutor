@@ -1,6 +1,6 @@
-import { CLIState, NetworkTopology } from '@/types';
+import { CLIState, NetworkTopology, CLIContext } from '@/types';
 import { CLIResponse } from './ai-interpreter';
-import { COMMAND_GRAMMAR, CommandNode, CLIContext } from './grammar';
+import { COMMAND_GRAMMAR, CommandNode } from './grammar';
 import { resolveCommand } from './command-resolver';
 import * as StateEngine from './state-engine';
 import * as NetworkSimulator from './network-simulator';
