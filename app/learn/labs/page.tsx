@@ -85,6 +85,9 @@ export default function LabsPage() {
         runningConfig: '',
         hostname: 'Router',
         interfaces: {},
+        vlans: [],
+        routes: [],
+        modeHistory: [],
     });
 
     const [commandHistory, setCommandHistory] = useState<HistoryEntry[]>([]);
