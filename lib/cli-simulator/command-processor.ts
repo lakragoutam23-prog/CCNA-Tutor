@@ -171,9 +171,9 @@ export async function processCommand(state: CLIState, input: string, context?: {
         }
         else if (fullCommand.startsWith('ip route')) {
             if (args.network && args.mask && args.nexthop) {
-                if (isValidIp(args.network) && isValidIp(args.mask)) {
+                if (isValidIp(args.network) && isValidSubnetMask(args.mask)) {
                     newState = StateEngine.addStaticRoute(state, args.network, args.mask, args.nexthop);
-                } else return ErrorResponse('Invalid IP/Mask');
+                } else return ErrorResponse('Invalid IP or Subnet Mask (must be contiguous)');
             } else return ErrorResponse('% Incomplete command.');
         }
         else if (fullCommand === 'router rip') {
@@ -234,9 +234,9 @@ export async function processCommand(state: CLIState, input: string, context?: {
     else if (state.mode === 'interface_config') {
         if (fullCommand.includes('ip address') || fullCommand.startsWith('ip add')) {
             if (args.ip && args.mask && state.currentInterface) {
-                if (isValidIp(args.ip) && isValidIp(args.mask)) {
+                if (isValidIp(args.ip) && isValidSubnetMask(args.mask)) {
                     newState = StateEngine.setInterfaceIp(state, state.currentInterface, args.ip, args.mask);
-                } else return ErrorResponse('Invalid IP format');
+                } else return ErrorResponse('Invalid IP or Subnet Mask (must be contiguous)');
             }
         }
         else if (fullCommand === 'no shutdown' || fullCommand === 'no shut') {
@@ -329,9 +329,9 @@ export async function processCommand(state: CLIState, input: string, context?: {
     // --- DHCP CONFIG ---
     else if (state.mode === 'dhcp_config' && state.currentDhcpPool) {
         if (fullCommand.startsWith('network') && args.networkIp && args.mask) {
-            if (isValidIp(args.networkIp) && isValidIp(args.mask)) {
+            if (isValidIp(args.networkIp) && isValidSubnetMask(args.mask)) {
                 newState = StateEngine.setDhcpNetwork(state, state.currentDhcpPool, args.networkIp, args.mask);
-            } else return ErrorResponse('Invalid IP/Mask');
+            } else return ErrorResponse('Invalid IP or Subnet Mask');
         }
         else if (fullCommand.startsWith('default-router') && args.routerIp) {
             if (isValidIp(args.routerIp)) {
@@ -518,6 +518,18 @@ function generateShowOutput(state: CLIState, args: Record<string, string>, fullC
     return "";
 }
 
+
 function countBits(mask: string): number {
     return mask.split('.').map(Number).map(n => n.toString(2).replace(/0/g, '').length).reduce((a, b) => a + b, 0);
+}
+
+function isValidSubnetMask(mask: string): boolean {
+    if (!isValidIp(mask)) return false;
+
+    // Convert to 32-bit binary string
+    const binary = mask.split('.').map(octet => parseInt(octet).toString(2).padStart(8, '0')).join('');
+
+    // Must be a sequence of 1s followed by a sequence of 0s
+    // Regex: ^1*0*$
+    return /^1*0*$/.test(binary);
 }
