@@ -16,7 +16,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Globe,
-    Plus
+    Plus,
+    BookOpen
 } from 'lucide-react';
 import type { SessionUser } from '@/types';
 
@@ -121,8 +122,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                         return (
                             <Link key={item.href} href={item.href}>
                                 <div className={`relative flex items-center ${collapsed ? 'justify-center' : 'px-4'} py-3.5 rounded-xl transition-all duration-200 group ${isActive
-                                        ? 'bg-cisco-blue text-white shadow-lg shadow-cisco-blue/20'
-                                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                                    ? 'bg-cisco-blue text-white shadow-lg shadow-cisco-blue/20'
+                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
                                     }`}>
                                     <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'}`} />
                                     <AnimatePresence>
@@ -143,8 +144,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     })}
                 </nav>
 
-                {/* User Section */}
+                {/* Bottom Section */}
                 <div className="p-4 border-t border-white/40 dark:border-white/5 mt-auto">
+                    {/* Switch to Student View */}
+                    <Link href="/learn" className={`flex items-center ${collapsed ? 'justify-center' : 'px-4'} py-3 mb-4 rounded-xl border border-slate-200 dark:border-white/10 text-slate-500 hover:text-cisco-blue hover:border-cisco-blue/50 transition-all group`}>
+                        <BookOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        {!collapsed && (
+                            <span className="ml-3 text-xs font-black uppercase tracking-widest">Student View</span>
+                        )}
+                    </Link>
+
                     <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : 'px-2'}`}>
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-200 to-slate-300 dark:from-slate-800 dark:to-slate-700 flex items-center justify-center font-black text-slate-500 shadow-inner">
                             {user?.email?.[0]?.toUpperCase()}

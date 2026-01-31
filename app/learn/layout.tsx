@@ -18,7 +18,8 @@ import {
     Sparkles,
     Zap,
     Globe,
-    Bell
+    Bell,
+    ShieldCheck
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -33,7 +34,7 @@ const MENU_ITEMS = [
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+    const [user, setUser] = useState<{ name?: string; email?: string, role?: string } | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -52,6 +53,7 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
     const displayName = user?.name || user?.email?.split('@')[0] || 'Student';
     const initials = displayName.slice(0, 2).toUpperCase();
+    const isAdmin = user?.role && ['admin', 'super_admin', 'content_admin'].includes(user.role);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden">
@@ -120,17 +122,19 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
 
                 {/* Bottom Section */}
                 <div className="p-6 border-t border-white/40 dark:border-white/5 space-y-4">
-                    {/* Quick Stats Card */}
-                    <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-inner relative overflow-hidden group">
-                        <Sparkles className="absolute -top-2 -right-2 w-12 h-12 text-white/10 group-hover:rotate-45 transition-transform" />
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Weekly Streak</p>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black">1 Day</span>
-                            <span className="text-xs text-cisco-blue font-bold flex items-center gap-1">
-                                <Zap className="w-3 h-3 fill-current" /> +10xp
-                            </span>
-                        </div>
-                    </div>
+                    {/* Admin Link (Conditional) */}
+                    {isAdmin && (
+                        <Link
+                            href="/dashboard"
+                            className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-900 text-white shadow-lg mb-2 group hover:scale-[1.02] transition-transform"
+                        >
+                            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                            <div className="flex-1">
+                                <p className="text-xs font-black uppercase tracking-widest">Admin Panel</p>
+                                <p className="text-[10px] text-slate-400">Manage Platform</p>
+                            </div>
+                        </Link>
+                    )}
 
                     <div className="space-y-1">
                         <Link href="/learn/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
@@ -164,12 +168,6 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notification Bell */}
-                        <button className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors">
-                            <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></div>
-                            <Bell className="w-6 h-6 text-slate-400" />
-                        </button>
-
                         {/* User Avatar */}
                         <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-white/10">
                             <div className="text-right hidden sm:block">
