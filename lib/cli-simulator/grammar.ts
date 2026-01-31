@@ -98,10 +98,28 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                             token: 'int',
                             children: { 'br': { token: 'br' } }
                         },
-                        'route': { token: 'route' }
+                        'route': { token: 'route' },
+                        'eigrp': {
+                            token: 'eigrp',
+                            children: { 'neighbors': { token: 'neighbors' } }
+                        },
+                        'bgp': {
+                            token: 'bgp',
+                            children: { 'summary': { token: 'summary' } }
+                        },
+                        'nat': {
+                            token: 'nat',
+                            children: {
+                                'translations': { token: 'translations' },
+                                'statistics': { token: 'statistics' }
+                            }
+                        }
                     }
                 },
-                'vlan': { token: 'vlan', children: { 'br': { token: 'br' } } }
+                'vlan': { token: 'vlan', children: { 'br': { token: 'br' } } },
+                'spanning-tree': { token: 'spanning-tree' },
+                'access-lists': { token: 'access-lists' },
+                'port-security': { token: 'port-security' }
             }
         },
         'write': { token: 'write', description: 'Save configuration' },
@@ -154,6 +172,96 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                             }
                         }
                     }
+                },
+                'dhcp': {
+                    token: 'dhcp',
+                    children: {
+                        'pool': {
+                            token: 'pool',
+                            children: {
+                                '<name>': { token: '<name>', isArgument: true, argName: 'poolName' }
+                            }
+                        },
+                        'excluded-address': {
+                            token: 'excluded-address',
+                            children: {
+                                '<ip>': { token: '<ip>', isArgument: true, children: { '<end_ip>': { token: '<end_ip>', isArgument: true } } }
+                            }
+                        }
+                    }
+                },
+                'nat': {
+                    token: 'nat',
+                    children: {
+                        'inside': {
+                            token: 'inside',
+                            children: {
+                                'source': {
+                                    token: 'source',
+                                    children: {
+                                        'static': {
+                                            token: 'static',
+                                            children: {
+                                                '<local>': { token: '<local>', isArgument: true, children: { '<global>': { token: '<global>', isArgument: true } } }
+                                            }
+                                        },
+                                        'list': {
+                                            token: 'list',
+                                            children: {
+                                                '<acl>': {
+                                                    token: '<acl>', isArgument: true,
+                                                    children: {
+                                                        'pool': {
+                                                            token: 'pool',
+                                                            children: {
+                                                                '<pool_name>': {
+                                                                    token: '<pool_name>', isArgument: true,
+                                                                    children: { 'overload': { token: 'overload' } }
+                                                                }
+                                                            }
+                                                        },
+                                                        'interface': {
+                                                            token: 'interface',
+                                                            children: {
+                                                                '<iface>': {
+                                                                    token: '<iface>', isArgument: true,
+                                                                    children: { 'overload': { token: 'overload' } }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                'pool': {
+                                    token: 'pool',
+                                    children: {
+                                        '<name>': {
+                                            token: '<name>', isArgument: true,
+                                            children: {
+                                                '<start>': {
+                                                    token: '<start>', isArgument: true,
+                                                    children: {
+                                                        '<end>': {
+                                                            token: '<end>', isArgument: true,
+                                                            children: {
+                                                                'netmask': {
+                                                                    token: 'netmask',
+                                                                    children: { '<mask>': { token: '<mask>', isArgument: true } }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -165,6 +273,70 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                     token: 'ospf',
                     children: {
                         '<id>': { token: '<id>', isArgument: true, argName: 'processId' }
+                    }
+                },
+                'eigrp': {
+                    token: 'eigrp',
+                    children: {
+                        '<as>': { token: '<as>', isArgument: true, argName: 'asNumber' }
+                    }
+                },
+                'bgp': {
+                    token: 'bgp',
+                    children: {
+                        '<as>': { token: '<as>', isArgument: true, argName: 'asNumber' }
+                    }
+                }
+            }
+        },
+        'access-list': {
+            token: 'access-list',
+            children: {
+                '<id>': {
+                    token: '<id>', isArgument: true, argName: 'aclId',
+                    children: {
+                        'permit': {
+                            token: 'permit',
+                            children: {
+                                '<source>': { token: '<source>', isArgument: true, children: { '<wildcard>': { token: '<wildcard>', isArgument: true } } }
+                            }
+                        },
+                        'deny': {
+                            token: 'deny',
+                            children: {
+                                '<source>': { token: '<source>', isArgument: true, children: { '<wildcard>': { token: '<wildcard>', isArgument: true } } }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        'spanning-tree': {
+            token: 'spanning-tree',
+            children: {
+                'mode': {
+                    token: 'mode',
+                    children: {
+                        'pvst': { token: 'pvst' },
+                        'rapid-pvst': { token: 'rapid-pvst' }
+                    }
+                },
+                'vlan': {
+                    token: 'vlan',
+                    children: {
+                        '<vlan_list>': {
+                            token: '<vlan_list>', isArgument: true,
+                            children: {
+                                'priority': {
+                                    token: 'priority',
+                                    children: { '<prio>': { token: '<prio>', isArgument: true } }
+                                },
+                                'root': {
+                                    token: 'root',
+                                    children: { 'primary': { token: 'primary' }, 'secondary': { token: 'secondary' } }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -205,10 +377,30 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                             }
                         }
                     }
+                },
+                'nat': {
+                    token: 'nat',
+                    children: {
+                        'inside': { token: 'inside' },
+                        'outside': { token: 'outside' }
+                    }
+                },
+                'access-group': {
+                    token: 'access-group',
+                    children: {
+                        '<id>': {
+                            token: '<id>', isArgument: true, argName: 'aclId',
+                            children: {
+                                'in': { token: 'in' },
+                                'out': { token: 'out' }
+                            }
+                        }
+                    }
                 }
             }
         },
         'shutdown': { token: 'shutdown' },
+        'shut': { token: 'shut' },
         'no': {
             token: 'no',
             children: {
@@ -217,7 +409,21 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                 'ip': {
                     token: 'ip',
                     children: {
-                        'address': { token: 'address' }
+                        'address': { token: 'address' },
+                        'nat': {
+                            token: 'nat',
+                            children: { 'inside': { token: 'inside' }, 'outside': { token: 'outside' } }
+                        },
+                        'access-group': {
+                            token: 'access-group',
+                            children: { '<id>': { token: '<id>', isArgument: true } }
+                        }
+                    }
+                },
+                'switchport': {
+                    token: 'switchport',
+                    children: {
+                        'port-security': { token: 'port-security' }
                     }
                 }
             }
@@ -226,6 +432,102 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
             token: 'description',
             children: {
                 '<text>': { token: '<text>', isArgument: true, argName: 'description' }
+            }
+        },
+        'switchport': {
+            token: 'switchport',
+            children: {
+                'mode': {
+                    token: 'mode',
+                    children: {
+                        'access': { token: 'access' },
+                        'trunk': { token: 'trunk' },
+                        'dynamic': {
+                            token: 'dynamic',
+                            children: { 'auto': { token: 'auto' }, 'desirable': { token: 'desirable' } }
+                        }
+                    }
+                },
+                'access': {
+                    token: 'access',
+                    children: {
+                        'vlan': {
+                            token: 'vlan',
+                            children: {
+                                '<vlan_id>': { token: '<vlan_id>', isArgument: true, argName: 'vlanId' }
+                            }
+                        }
+                    }
+                },
+                'trunk': {
+                    token: 'trunk',
+                    children: {
+                        'allowed': {
+                            token: 'allowed',
+                            children: {
+                                'vlan': {
+                                    token: 'vlan',
+                                    children: {
+                                        '<vlan_list>': { token: '<vlan_list>', isArgument: true, argName: 'vlanList' }
+                                    }
+                                }
+                            }
+                        },
+                        'native': {
+                            token: 'native',
+                            children: {
+                                'vlan': {
+                                    token: 'vlan',
+                                    children: { '<id>': { token: '<id>', isArgument: true } }
+                                }
+                            }
+                        }
+                    }
+                },
+                'port-security': {
+                    token: 'port-security',
+                    children: {
+                        'maximum': {
+                            token: 'maximum',
+                            children: { '<count>': { token: '<count>', isArgument: true } }
+                        },
+                        'mac-address': {
+                            token: 'mac-address',
+                            children: {
+                                'sticky': { token: 'sticky' },
+                                '<mac>': { token: '<mac>', isArgument: true }
+                            }
+                        },
+                        'violation': {
+                            token: 'violation',
+                            children: {
+                                'protect': { token: 'protect' },
+                                'restrict': { token: 'restrict' },
+                                'shutdown': { token: 'shutdown' }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        'channel-group': {
+            token: 'channel-group',
+            children: {
+                '<id>': {
+                    token: '<id>', isArgument: true, argName: 'channelId',
+                    children: {
+                        'mode': {
+                            token: 'mode',
+                            children: {
+                                'on': { token: 'on' },
+                                'active': { token: 'active' },
+                                'passive': { token: 'passive' },
+                                'desirable': { token: 'desirable' },
+                                'auto': { token: 'auto' }
+                            }
+                        }
+                    }
+                }
             }
         },
         'exit': { token: 'exit' },
@@ -251,9 +553,7 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
     router_config: {
         'version': {
             token: 'version',
-            children: {
-                '<ver>': { token: '<ver>', isArgument: true, argName: 'version' }
-            }
+            children: { '<ver>': { token: '<ver>', isArgument: true } }
         },
         'network': {
             token: 'network',
@@ -266,11 +566,27 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                             children: {
                                 'area': {
                                     token: 'area',
-                                    children: {
-                                        '<area>': { token: '<area>', isArgument: true, argName: 'area' }
-                                    }
+                                    children: { '<area>': { token: '<area>', isArgument: true, argName: 'area' } }
                                 }
                             }
+                        },
+                        'mask': { // For BGP
+                            token: 'mask',
+                            children: { '<mask>': { token: '<mask>', isArgument: true } }
+                        }
+                    }
+                }
+            }
+        },
+        'neighbor': {
+            token: 'neighbor',
+            children: {
+                '<ip>': {
+                    token: '<ip>', isArgument: true,
+                    children: {
+                        'remote-as': {
+                            token: 'remote-as',
+                            children: { '<as>': { token: '<as>', isArgument: true } }
                         }
                     }
                 }
@@ -282,8 +598,64 @@ export const COMMAND_GRAMMAR: Record<CLIContext, Record<string, CommandNode>> = 
                 'auto-summary': { token: 'auto-summary' }
             }
         },
+        'passive-interface': {
+            token: 'passive-interface',
+            children: { '<iface>': { token: '<iface>', isArgument: true } }
+        },
         'exit': { token: 'exit' },
         'end': { token: 'end' }
     },
-    line_config: { 'exit': { token: 'exit' }, 'end': { token: 'end' } }
+    line_config: {
+        'password': {
+            token: 'password',
+            children: { '<pwd>': { token: '<pwd>', isArgument: true } }
+        },
+        'login': {
+            token: 'login',
+            children: { 'local': { token: 'local' } }
+        },
+        'transport': {
+            token: 'transport',
+            children: {
+                'input': {
+                    token: 'input',
+                    children: {
+                        'ssh': { token: 'ssh' },
+                        'telnet': { token: 'telnet' },
+                        'all': { token: 'all' },
+                        'none': { token: 'none' }
+                    }
+                }
+            }
+        },
+        'exit': { token: 'exit' },
+        'end': { token: 'end' }
+    },
+    dhcp_config: {
+        'network': {
+            token: 'network',
+            children: {
+                '<ip>': {
+                    token: '<ip>', isArgument: true, argName: 'networkIp',
+                    children: {
+                        '<mask>': { token: '<mask>', isArgument: true, argName: 'mask' }
+                    }
+                }
+            }
+        },
+        'default-router': {
+            token: 'default-router',
+            children: {
+                '<ip>': { token: '<ip>', isArgument: true, argName: 'routerIp' }
+            }
+        },
+        'dns-server': {
+            token: 'dns-server',
+            children: {
+                '<ip>': { token: '<ip>', isArgument: true, argName: 'dnsIp' }
+            }
+        },
+        'exit': { token: 'exit' },
+        'end': { token: 'end' }
+    }
 };

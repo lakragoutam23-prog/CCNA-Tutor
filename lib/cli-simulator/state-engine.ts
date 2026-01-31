@@ -173,15 +173,7 @@ export function calculateRoutingTable(state: CLIState): CLIState {
     });
 
     // 3. Static Routes (AD 1)
-    // Only if Next Hop is reachable (recursive lookup) or generic persistence (simplified for CCNA)
-    // Packet Tracer Logic: Static route installs if interface is UP.
-    // We will assume "always install" if interface implies it, or just install it (Standard behavior)
-    // Better: Check if nextHop matches any connected subnet OR is an interface name (not supported in our struct yet)
     state.staticRoutes?.forEach(r => {
-        // Validity check: Is nextHop on a connected subnet?
-        // const isReachable = connectedSubnets.some(sub => isIpInSubnet(r.nextHop, sub.net, sub.mask));
-        // For simplicity: Install it. IOS installs static routes pointing to interfaces always. 
-        // Pointing to IP requires reachability. We'll skip complex check for now.
         newRoutes.push({
             network: r.network,
             mask: r.mask,
@@ -191,49 +183,17 @@ export function calculateRoutingTable(state: CLIState): CLIState {
     });
 
     // 4. Dynamic (RIP - AD 120, OSPF - AD 110)
-    // MOCK INJECTION: If any interface matches a network statement, inject a "Learned" route
-
-    // RIP
-    if (state.ripConfig && state.ripConfig.networks.length > 0) {
-        // Check if any connected subnet is covered by RIP network
-        const isRipActive = connectedSubnets.some(sub => {
-            // Simplified: does rip config network equal subnet? or partial match?
-            // RIP 'network' command is classful usually, but let's assume exact or class match.
-            // We'll simplistic check: if rip configs has the subnet network string
-            return state.ripConfig!.networks.includes(sub.net);
-            // Better: 'network 10.0.0.0' matches '10.1.1.0/24'. 
-            // We'll skip complex classful matching. User usually types classful.
-        });
-
-        if (isRipActive) {
-            // Inject Mock Route
-            newRoutes.push({
-                network: '192.168.100.0',
-                mask: '255.255.255.0',
-                nextHop: '10.1.1.2', // Mock neighbor
-                type: 'rip'
-            });
-        }
-    }
-
-    // OSPF
-    if (state.ospfConfig && state.ospfConfig.networks.length > 0) {
-        // Check activation
-        // OSPF uses wildcard matching. 
-        // Simplified check: exact match of network/wildcard logic is hard without helper.
-        // We act if any network is present.
-
-        newRoutes.push({
-            network: '172.16.1.0',
-            mask: '255.255.255.0',
-            nextHop: '10.1.1.2',
-            type: 'ospf'
+    // PRESERVE Existing Dynamic Routes (Managed by network-simulator.ts)
+    if (state.routes) {
+        state.routes.filter(r => ['ospf', 'rip', 'eigrp', 'bgp'].includes(r.type)).forEach(r => {
+            newRoutes.push(r);
         });
     }
 
     state.routes = newRoutes;
     return state;
 }
+
 
 // ============ HELPERS ============
 
@@ -242,4 +202,244 @@ function calculateNetworkAddress(ip: string, mask: string): string {
     const maskOctets = mask.split('.').map(Number);
     const networkOctets = ipOctets.map((octet, i) => octet & maskOctets[i]);
     return networkOctets.join('.');
+}
+
+// ==========================================
+// SWITCHING LOGIC
+// ==========================================
+
+export function setSwitchportMode(state: CLIState, iface: string, mode: 'access' | 'trunk'): CLIState {
+    const nextState = cloneState(state);
+    if (nextState.interfaces[iface]) {
+        nextState.interfaces[iface].switchportMode = mode;
+    }
+    return nextState;
+}
+
+export function setAccessVlan(state: CLIState, iface: string, vlanId: number): CLIState {
+    const nextState = cloneState(state);
+    if (nextState.interfaces[iface]) {
+        nextState.interfaces[iface].accessVlan = vlanId;
+    }
+    return nextState;
+}
+
+// ============ EIGRP CONFIG ============
+
+export function configureEigrp(state: CLIState, asNumber: number): CLIState {
+    const next = cloneState(state);
+    if (!next.eigrpConfig) {
+        next.eigrpConfig = { asNumber, networks: [], noAutoSummary: true, passiveInterfaces: [] };
+    } else if (next.eigrpConfig.asNumber !== asNumber) {
+        next.eigrpConfig = { asNumber, networks: [], noAutoSummary: true, passiveInterfaces: [] };
+    }
+    return next;
+}
+
+export function addEigrpNetwork(state: CLIState, network: string): CLIState {
+    const next = cloneState(state);
+    if (next.eigrpConfig && !next.eigrpConfig.networks.includes(network)) {
+        next.eigrpConfig.networks.push(network);
+    }
+    return next;
+}
+
+// ============ BGP CONFIG ============
+
+export function configureBgp(state: CLIState, asNumber: number): CLIState {
+    const next = cloneState(state);
+    if (!next.bgpConfig) {
+        next.bgpConfig = { asNumber, neighbors: [], networks: [] };
+    } else if (next.bgpConfig.asNumber !== asNumber) {
+        next.bgpConfig = { asNumber, neighbors: [], networks: [] };
+    }
+    return next;
+}
+
+export function addBgpNeighbor(state: CLIState, ip: string, remoteAs: number): CLIState {
+    const next = cloneState(state);
+    if (next.bgpConfig) {
+        const existing = next.bgpConfig.neighbors.find(n => n.ip === ip);
+        if (existing) {
+            existing.remoteAs = remoteAs;
+        } else {
+            next.bgpConfig.neighbors.push({ ip, remoteAs });
+        }
+    }
+    return next;
+}
+
+// ============ NAT CONFIG ============
+
+export function configureNatInside(state: CLIState, iface: string): CLIState {
+    const next = cloneState(state);
+    if (!next.natConfig) next.natConfig = { insideInterfaces: [], outsideInterfaces: [], staticMappings: [], pools: [], overload: false };
+    if (!next.natConfig.insideInterfaces.includes(iface)) next.natConfig.insideInterfaces.push(iface);
+    next.natConfig.outsideInterfaces = next.natConfig.outsideInterfaces.filter(i => i !== iface);
+    return next;
+}
+
+export function configureNatOutside(state: CLIState, iface: string): CLIState {
+    const next = cloneState(state);
+    if (!next.natConfig) next.natConfig = { insideInterfaces: [], outsideInterfaces: [], staticMappings: [], pools: [], overload: false };
+    if (!next.natConfig.outsideInterfaces.includes(iface)) next.natConfig.outsideInterfaces.push(iface);
+    next.natConfig.insideInterfaces = next.natConfig.insideInterfaces.filter(i => i !== iface);
+    return next;
+}
+
+export function addNatStaticMapping(state: CLIState, local: string, global: string): CLIState {
+    const next = cloneState(state);
+    if (!next.natConfig) next.natConfig = { insideInterfaces: [], outsideInterfaces: [], staticMappings: [], pools: [], overload: false };
+    // Check if mapping exists to avoid duplicates
+    const exists = next.natConfig.staticMappings.some(m => m.local === local && m.global === global);
+    if (!exists) next.natConfig.staticMappings.push({ local, global });
+    return next;
+}
+
+// ============ ACL CONFIG ============
+
+export function addAclRule(state: CLIState, id: string, rule: any): CLIState {
+    const next = cloneState(state);
+    if (!next.acls) next.acls = {};
+    if (!next.acls[id]) {
+        const type = parseInt(id) >= 100 && parseInt(id) < 200 ? 'extended' : 'standard';
+        next.acls[id] = { type, rules: [] };
+    }
+    next.acls[id].rules.push(rule);
+    return next;
+}
+
+// ============ STP CONFIG ============
+
+export function configureStpMode(state: CLIState, mode: 'pvst' | 'rapid-pvst'): CLIState {
+    const next = cloneState(state);
+    if (!next.stpConfig) next.stpConfig = { mode, vlanPriorities: {} };
+    next.stpConfig.mode = mode;
+    return next;
+}
+
+// ============ DHCP CONFIG ============
+
+export function configureDhcpPool(state: CLIState, name: string): CLIState {
+    const next = cloneState(state);
+    if (!next.dhcpPools) next.dhcpPools = [];
+    const pool = next.dhcpPools.find(p => p.name === name);
+    if (!pool) {
+        next.dhcpPools.push({ name, dns: [] });
+    }
+    return next;
+}
+
+export function setDhcpNetwork(state: CLIState, poolName: string, network: string, mask: string): CLIState {
+    const next = cloneState(state);
+    if (next.dhcpPools) {
+        const pool = next.dhcpPools.find(p => p.name === poolName);
+        if (pool) {
+            pool.network = `${network} ${mask}`; // Storing as string "IP Mask" for simplicity or split it
+        }
+    }
+    return next;
+}
+
+export function setDhcpDefaultRouter(state: CLIState, poolName: string, routerIp: string): CLIState {
+    const next = cloneState(state);
+    if (next.dhcpPools) {
+        const pool = next.dhcpPools.find(p => p.name === poolName);
+        if (pool) {
+            pool.defaultRouter = routerIp;
+        }
+    }
+    return next;
+}
+
+export function setDhcpDnsServer(state: CLIState, poolName: string, dnsIp: string): CLIState {
+    const next = cloneState(state);
+    if (next.dhcpPools) {
+        const pool = next.dhcpPools.find(p => p.name === poolName);
+        if (pool) {
+            if (!pool.dns) pool.dns = [];
+            pool.dns.push(dnsIp);
+        }
+    }
+    return next;
+}
+
+// ============ ETHERCHANNEL CONFIG ============
+
+export function configureChannelGroup(state: CLIState, iface: string, channelId: number, mode: 'on' | 'active' | 'passive' | 'desirable' | 'auto'): CLIState {
+    const next = cloneState(state);
+    if (!next.etherChannels) next.etherChannels = {};
+
+    // Determine protocol
+    let protocol: 'lacp' | 'pagp' | 'on' = 'on';
+    if (mode === 'active' || mode === 'passive') protocol = 'lacp';
+    if (mode === 'auto' || mode === 'desirable') protocol = 'pagp';
+
+    // Init Group if needed
+    if (!next.etherChannels[channelId]) {
+        next.etherChannels[channelId] = { protocol, members: [] };
+        // Create Port-channel Interface automatically
+        const poName = `Port-channel${channelId}`;
+        if (!next.interfaces[poName]) {
+            next.interfaces[poName] = {
+                status: 'down', // Defaults to down until members are up
+                description: `EtherChannel ${channelId}`
+            };
+        }
+    }
+
+    // Add Member
+    if (!next.etherChannels[channelId].members.includes(iface)) {
+        next.etherChannels[channelId].members.push(iface);
+    }
+
+    return next;
+}
+
+// ============ PORT SECURITY ============
+
+export function enablePortSecurity(state: CLIState, iface: string): CLIState {
+    const next = cloneState(state);
+    if (!next.interfaces[iface]) return next;
+    if (!next.interfaces[iface].portSecurity) {
+        next.interfaces[iface].portSecurity = { enabled: true, violation: 'shutdown', maximum: 1, macAddresses: [] };
+    } else {
+        next.interfaces[iface].portSecurity!.enabled = true;
+    }
+    return next;
+}
+
+export function setPortSecurityMax(state: CLIState, iface: string, max: number): CLIState {
+    const next = cloneState(state);
+    if (next.interfaces[iface]?.portSecurity) {
+        next.interfaces[iface].portSecurity!.maximum = max;
+    }
+    return next;
+}
+
+export function setPortSecurityViolation(state: CLIState, iface: string, action: 'protect' | 'restrict' | 'shutdown'): CLIState {
+    const next = cloneState(state);
+    if (next.interfaces[iface]?.portSecurity) {
+        next.interfaces[iface].portSecurity!.violation = action;
+    }
+    return next;
+}
+
+export function addPortSecurityMac(state: CLIState, iface: string, mac: string): CLIState {
+    const next = cloneState(state);
+    if (next.interfaces[iface]?.portSecurity) {
+        if (!next.interfaces[iface].portSecurity!.macAddresses) next.interfaces[iface].portSecurity!.macAddresses = [];
+        if (!next.interfaces[iface].portSecurity!.macAddresses!.includes(mac)) {
+            next.interfaces[iface].portSecurity!.macAddresses!.push(mac);
+        }
+    }
+    return next;
+}
+
+export function setPortSecuritySticky(state: CLIState, iface: string): CLIState {
+    const next = cloneState(state);
+    if (next.interfaces[iface]?.portSecurity) {
+        next.interfaces[iface].portSecurity!.sticky = true;
+    }
+    return next;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { interpretCommand, getPrompt, getInitialState, CLIResponse } from '@/lib/cli-simulator/ai-interpreter';
-import type { CLIState } from '@/types';
+import { processRoutingUpdates } from '@/lib/cli-simulator/network-simulator';
+import type { CLIState, NetworkTopology } from '@/types';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,12 +9,14 @@ export const dynamic = 'force-dynamic';
 interface CLIRequest {
     command: string;
     state: CLIState;
+    topology?: NetworkTopology;
+    deviceId?: string;
 }
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json() as CLIRequest;
-        const { command, state } = body;
+        const { command, state, topology, deviceId } = body;
 
         if (!command || typeof command !== 'string') {
             return NextResponse.json(
@@ -30,7 +33,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Call the AI interpreter
-        const response: CLIResponse = await interpretCommand(state, command.trim());
+        const response: CLIResponse = await interpretCommand(
+            state,
+            command.trim(),
+            (topology && deviceId) ? { topology, deviceId } : undefined
+        );
 
         // Calculate new state
         // Use the full state returned by interpreter if available (includes VLANs, Routes updates)
@@ -47,6 +54,24 @@ export async function POST(request: NextRequest) {
         // Update prompt based on new state
         newState.prompt = getPrompt(newState.hostname, newState.mode);
 
+        let newTopology = topology;
+
+        // Run Network Simulation if topology context exists
+        if (newTopology && deviceId && newState) {
+            // 1. Sync active device state into topology
+            if (newTopology.devices[deviceId]) {
+                newTopology.devices[deviceId].config = newState;
+            }
+
+            // 2. Process Routing / Link State Simulation
+            newTopology = processRoutingUpdates(newTopology);
+
+            // 3. Re-extract state in case simulation modified it (e.g. added routes)
+            if (newTopology.devices[deviceId]?.config) {
+                newState = newTopology.devices[deviceId].config!;
+            }
+        }
+
         return NextResponse.json({
             success: true,
             response: {
@@ -55,6 +80,7 @@ export async function POST(request: NextRequest) {
                 error: response.error,
             },
             newState,
+            newTopology, // Return full topology
         });
 
     } catch (error) {

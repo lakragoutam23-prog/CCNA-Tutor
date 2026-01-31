@@ -210,11 +210,11 @@ export interface LabObjective {
 }
 
 export interface NetworkDevice {
-    id: string;
-    name: string;
+    id: string; // e.g., "R1"
+    name: string; // e.g., "Router 1"
     type: 'router' | 'switch' | 'pc' | 'server' | 'firewall';
-    interfaces: NetworkInterface[];
-    config?: string;
+    interfaces: Record<string, NetworkInterface>; // Changed to Record for easier lookup
+    config?: CLIState; // The full CLI state for this device
     position: { x: number; y: number };
 }
 
@@ -222,15 +222,19 @@ export interface NetworkInterface {
     name: string;
     ipAddress?: string;
     subnetMask?: string;
-    status: 'up' | 'down' | 'admin_down';
-    connectedTo?: { deviceId: string; interface: string };
+    status: 'up' | 'down' | 'administratively down';
+    connectedTo?: { deviceId: string; port: string }; // Renamed interface -> port for clarity
 }
 
 export interface NetworkTopology {
-    devices: NetworkDevice[];
-    connections: Array<{
-        from: { deviceId: string; interface: string };
-        to: { deviceId: string; interface: string };
+    id: string;
+    name: string;
+    devices: Record<string, NetworkDevice>; // Keyed by ID for O(1) access
+    links: Array<{
+        id: string;
+        source: { deviceId: string; port: string };
+        target: { deviceId: string; port: string };
+        status: 'up' | 'down';
     }>;
 }
 
@@ -249,8 +253,10 @@ export interface LabAttemptData {
 }
 
 // ============ CLI SIMULATOR TYPES ============
+export type CLIContext = 'user' | 'privileged' | 'global_config' | 'interface_config' | 'router_config' | 'line_config' | 'vlan_config' | 'dhcp_config' | 'acl_config';
+
 export interface CLICommand {
-    device: string;
+    id: string;
     command: string;
     output: string;
     timestamp: Date;
@@ -259,24 +265,96 @@ export interface CLICommand {
 
 export interface CLIState {
     device: string;
-    mode: 'user' | 'privileged' | 'global_config' | 'interface_config' | 'router_config' | 'line_config' | 'dhcp_config' | 'vlan_config' | 'acl_config';
+    mode: 'user' | 'privileged' | 'global_config' | 'interface_config' | 'router_config' | 'line_config' | 'vlan_config' | 'dhcp_config' | 'acl_config';
     prompt: string;
     runningConfig: string;
     hostname: string;
-    interfaces: Record<string, { ip?: string; mask?: string; status: string; description?: string }>;
+    interfaces: Record<string, {
+        ip?: string;
+        mask?: string;
+        status: string;
+        description?: string;
+        switchportMode?: 'access' | 'trunk' | 'dynamic';
+        accessVlan?: number;
+        nativeVlan?: number;
+        portSecurity?: {
+            enabled: boolean;
+            maximum?: number;
+            violation?: 'protect' | 'restrict' | 'shutdown';
+            macAddresses?: string[];
+            sticky?: boolean;
+        };
+    }>;
     // New fields for configuration state tracking
     vlans: Array<{ id: number; name: string; ports: string[] }>;
-    routes: Array<{ network: string; mask: string; nextHop: string; type: 'static' | 'connected' | 'rip' | 'ospf' }>; // Active RIB
+    // Switching State
+    vlanDb?: Record<number, { name: string; status: 'active' | 'suspended' }>;
+    macAddressTable?: Array<{ mac: string; vlan: number; type: 'static' | 'dynamic'; port: string }>;
+    routes: Array<{ network: string; mask: string; nextHop: string; type: 'static' | 'connected' | 'rip' | 'ospf' | 'eigrp' | 'bgp' }>; // Active RIB
     staticRoutes?: Array<{ network: string; mask: string; nextHop: string }>; // Configured Static Routes
     modeHistory: string[]; // Track mode history for proper exit navigation
     currentInterface?: string; // Track which interface is being configured
-    currentRouter?: 'rip' | 'ospf'; // Track active routing protocol context
+    currentRouter?: 'rip' | 'ospf' | 'eigrp' | 'bgp'; // Track active routing protocol context
+    currentDhcpPool?: string; // Track active DHCP pool context
 
     // Dynamic Routing Config
     ripConfig?: { version: number; networks: string[]; autoSummary: boolean };
     ospfConfig?: { processId: number; networks: Array<{ network: string; wildcard: string; area: number }> };
+    eigrpConfig?: { asNumber: number; networks: string[]; noAutoSummary: boolean; passiveInterfaces: string[] };
+    bgpConfig?: { asNumber: number; neighbors: Array<{ ip: string; remoteAs: number }>; networks: string[] };
 
+    // Switching & Layer 2
+    stpConfig?: { mode: 'pvst' | 'rapid-pvst'; priority?: number; vlanPriorities?: Record<number, number> };
+    etherChannels?: Record<number, { protocol: 'lacp' | 'pagp' | 'on'; members: string[] }>;
+
+    // Services
     dhcpPools?: Array<{ name: string; network?: string; defaultRouter?: string; dns?: string[] }>;
+    natConfig?: {
+        insideInterfaces: string[];
+        outsideInterfaces: string[];
+        staticMappings: Array<{ local: string; global: string }>;
+        pools: Array<{ name: string; start: string; end: string; netmask: string }>;
+        overload: boolean;
+    };
+    acls?: Record<string, {
+        type: 'standard' | 'extended';
+        rules: Array<{
+            action: 'permit' | 'deny';
+            source: string;
+            sourceWildcard?: string;
+            destination?: string;
+            destinationWildcard?: string;
+            protocol?: string;
+            port?: number
+        }>
+    }>;
+    lines?: Record<string, { password?: string; login: boolean; transportInput?: string[] }>;
+
+    // Runtime Routing State
+    ospfNeighbors?: Array<{
+        neighborId: string;
+        ip: string;
+        interface: string;
+        state: 'DOWN' | 'INIT' | '2WAY' | 'EXSTART' | 'EXCHANGE' | 'LOADING' | 'FULL';
+        drPriority: number;
+        deadTime: number;
+    }>;
+    ripNeighbors?: Array<{
+        ip: string;
+        lastUpdate: Date;
+    }>;
+    eigrpNeighbors?: Array<{
+        ip: string;
+        interface: string;
+        holdTime: number;
+        uptime: number;
+    }>;
+    bgpNeighbors?: Array<{
+        ip: string;
+        remoteAs: number;
+        state: 'Idle' | 'Connect' | 'Active' | 'OpenSent' | 'OpenConfirm' | 'Established';
+        uptime: number;
+    }>;
 }
 
 export interface CLIValidationRule {

@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import type { CLIState } from '@/types';
+import type { CLIState, NetworkTopology } from '@/types';
 import { processCommand } from './command-processor';
 
 // Initialize Groq client (Keep only for "Explain" or "Hint" features, NOT for execution)
@@ -23,11 +23,12 @@ export interface CLIResponse {
  */
 export async function interpretCommand(
     state: CLIState,
-    command: string
+    command: string,
+    context?: { topology: NetworkTopology, deviceId: string }
 ): Promise<CLIResponse> {
     try {
         // Delegate to deterministic processor
-        return await processCommand(state, command);
+        return await processCommand(state, command, context);
     } catch (error) {
         console.error('CLI Execution Error:', error);
         return {
