@@ -103,7 +103,9 @@ export default function LabsPage() {
                 type: 'router',
                 interfaces: {
                     'GigabitEthernet0/0': { name: 'GigabitEthernet0/0', status: 'down' },
-                    'GigabitEthernet0/1': { name: 'GigabitEthernet0/1', status: 'down' }
+                    'GigabitEthernet0/1': { name: 'GigabitEthernet0/1', status: 'down' },
+                    'GigabitEthernet0/2': { name: 'GigabitEthernet0/2', status: 'down' },
+                    'GigabitEthernet0/3': { name: 'GigabitEthernet0/3', status: 'down' }
                 },
                 position: { x: 0, y: 0 },
                 config: {
@@ -114,7 +116,9 @@ export default function LabsPage() {
                     hostname: 'Router',
                     interfaces: {
                         'GigabitEthernet0/0': { status: 'administratively down' },
-                        'GigabitEthernet0/1': { status: 'administratively down' }
+                        'GigabitEthernet0/1': { status: 'administratively down' },
+                        'GigabitEthernet0/2': { status: 'administratively down' },
+                        'GigabitEthernet0/3': { status: 'administratively down' }
                     },
                     vlans: [],
                     routes: [],
@@ -194,15 +198,21 @@ export default function LabsPage() {
         } else if (type === 'router') {
             defaultInterfaces = {
                 'GigabitEthernet0/0': { name: 'GigabitEthernet0/0', status: 'shutdown' },
-                'GigabitEthernet0/1': { name: 'GigabitEthernet0/1', status: 'shutdown' }
+                'GigabitEthernet0/1': { name: 'GigabitEthernet0/1', status: 'shutdown' },
+                'GigabitEthernet0/2': { name: 'GigabitEthernet0/2', status: 'shutdown' },
+                'GigabitEthernet0/3': { name: 'GigabitEthernet0/3', status: 'shutdown' }
             };
         } else if (type === 'switch') {
-            // Add 4 ports for simulation simplicity
+            // Add 8 ports for more complex topologies
             defaultInterfaces = {
                 'FastEthernet0/1': { name: 'FastEthernet0/1', status: 'up' },
                 'FastEthernet0/2': { name: 'FastEthernet0/2', status: 'up' },
                 'FastEthernet0/3': { name: 'FastEthernet0/3', status: 'up' },
-                'FastEthernet0/4': { name: 'FastEthernet0/4', status: 'up' }
+                'FastEthernet0/4': { name: 'FastEthernet0/4', status: 'up' },
+                'FastEthernet0/5': { name: 'FastEthernet0/5', status: 'up' },
+                'FastEthernet0/6': { name: 'FastEthernet0/6', status: 'up' },
+                'FastEthernet0/7': { name: 'FastEthernet0/7', status: 'up' },
+                'FastEthernet0/8': { name: 'FastEthernet0/8', status: 'up' }
             };
         }
 
