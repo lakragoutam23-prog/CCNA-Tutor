@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,13 +12,13 @@ import {
     MessageSquare,
     Trophy,
     User,
-    Settings,
     LogOut,
     Menu,
     X,
     Sparkles,
     Zap,
-    Globe
+    Globe,
+    Bell
 } from 'lucide-react';
 
 const MENU_ITEMS = [
@@ -33,6 +33,25 @@ const MENU_ITEMS = [
 export default function LearnLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await fetch('/api/auth/session');
+                const data = await response.json();
+                if (data.success) {
+                    setUser(data.data);
+                }
+            } catch (error) {
+                console.error("Failed to fetch session", error);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const displayName = user?.name || user?.email?.split('@')[0] || 'Student';
+    const initials = displayName.slice(0, 2).toUpperCase();
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden">
@@ -82,8 +101,8 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                                 key={item.href}
                                 href={item.href}
                                 className={`relative group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
-                                        ? 'bg-cisco-blue text-white shadow-lg shadow-cisco-blue/20'
-                                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    ? 'bg-cisco-blue text-white shadow-lg shadow-cisco-blue/20'
+                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />
@@ -106,9 +125,9 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                         <Sparkles className="absolute -top-2 -right-2 w-12 h-12 text-white/10 group-hover:rotate-45 transition-transform" />
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Weekly Streak</p>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-black">5 Days</span>
+                            <span className="text-2xl font-black">1 Day</span>
                             <span className="text-xs text-cisco-blue font-bold flex items-center gap-1">
-                                <Zap className="w-3 h-3 fill-current" /> +20xp
+                                <Zap className="w-3 h-3 fill-current" /> +10xp
                             </span>
                         </div>
                     </div>
@@ -145,21 +164,21 @@ export default function LearnLayout({ children }: { children: React.ReactNode })
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {/* Notification Bell Mockup */}
+                        {/* Notification Bell */}
                         <button className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors">
                             <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></div>
-                            <div className="w-6 h-6 text-slate-400">🔔</div>
+                            <Bell className="w-6 h-6 text-slate-400" />
                         </button>
 
                         {/* User Avatar */}
                         <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-white/10">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-black text-slate-900 dark:text-white">Alex Networker</p>
-                                <p className="text-[10px] font-bold text-cisco-blue uppercase tracking-tighter">Gold Tier Member</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white capitalize">{displayName}</p>
+                                <p className="text-[10px] font-bold text-cisco-blue uppercase tracking-tighter">Student Member</p>
                             </div>
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cisco-blue to-cyan-400 p-[2px] shadow-sm">
                                 <div className="w-full h-full rounded-[9px] bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500">
-                                    AN
+                                    {initials}
                                 </div>
                             </div>
                         </div>

@@ -24,10 +24,41 @@ import type { CLIState, CLICommand, NetworkTopology } from '@/types';
 import TopologyCanvas from './components/TopologyCanvas';
 import { connectDevices } from '@/lib/cli-simulator/topology-engine';
 
+// Pre-defined lab scenarios - All CCNA Lab Topics
 const LAB_SCENARIOS = [
-    { id: 'sandbox', title: 'Open Sandbox', topic: 'General', difficulty: 'Beginner' },
-    { id: 'vlan', title: 'VLAN Network Access', topic: 'Switching', difficulty: 'Intermediate' },
-    { id: 'ospf', title: 'OSPF Core Routing', topic: 'Routing', difficulty: 'Expert' },
+    // Basic/General
+    { id: 'sandbox', title: 'Open Sandbox', description: 'Practice any Cisco IOS commands свободно', topic: 'General', difficulty: 'Beginner' },
+    { id: 'basic', title: 'Basic Router Setup', description: 'Hostname, banners, and passwords', topic: 'Basics', difficulty: 'Beginner' },
+
+    // Layer 2 - Switching
+    { id: 'vlan', title: 'VLAN Configuration', description: 'Create and assign VLANs', topic: 'Switching', difficulty: 'Beginner' },
+    { id: 'intervlan', title: 'Inter-VLAN Routing', description: 'Router-on-a-stick optimization', topic: 'Switching', difficulty: 'Intermediate' },
+    { id: 'stp', title: 'Spanning Tree (STP)', description: 'Root bridge manipulation', topic: 'Switching', difficulty: 'Intermediate' },
+    { id: 'etherchannel', title: 'EtherChannel (LACP)', description: 'Link aggregation bundles', topic: 'Switching', difficulty: 'Intermediate' },
+    { id: 'portsecurity', title: 'Port Security', description: 'MAC address limiting', topic: 'Security', difficulty: 'Beginner' },
+
+    // Layer 3 - Routing
+    { id: 'static', title: 'Static Routing', description: 'Manual route definition', topic: 'Routing', difficulty: 'Beginner' },
+    { id: 'ospf', title: 'OSPF Single-Area', description: 'Link-state protocol basics', topic: 'Routing', difficulty: 'Intermediate' },
+    { id: 'ospf-multi', title: 'OSPF Multi-Area', description: 'Complex OSPF topologies', topic: 'Routing', difficulty: 'Expert' },
+    { id: 'eigrp', title: 'EIGRP Configuration', description: 'Distance vector routing', topic: 'Routing', difficulty: 'Intermediate' },
+    { id: 'eigrp-named', title: 'EIGRP Named Mode', description: 'Modern EIGRP syntax', topic: 'Routing', difficulty: 'Expert' },
+
+    // IPv6
+    { id: 'ipv6-basic', title: 'IPv6 Addressing', description: 'Dual-stack implementation', topic: 'IPv6', difficulty: 'Intermediate' },
+    { id: 'ipv6-routing', title: 'IPv6 Static Routes', description: 'Next-hop IPv6 routing', topic: 'IPv6', difficulty: 'Intermediate' },
+    { id: 'ospfv3', title: 'OSPFv3 for IPv6', description: 'Routing IPv6 with OSPF', topic: 'IPv6', difficulty: 'Expert' },
+
+    // Security
+    { id: 'acl-standard', title: 'Standard ACLs', description: 'Source-based filtering', topic: 'Security', difficulty: 'Intermediate' },
+    { id: 'acl-extended', title: 'Extended ACLs', description: 'Granular traffic control', topic: 'Security', difficulty: 'Intermediate' },
+    { id: 'ssh', title: 'SSH Configuration', description: 'Secure remote management', topic: 'Security', difficulty: 'Beginner' },
+    { id: 'aaa', title: 'AAA & RADIUS', description: 'Authentication framework', topic: 'Security', difficulty: 'Expert' },
+
+    // Services
+    { id: 'nat', title: 'NAT/PAT Config', description: 'Network Address Translation', topic: 'Services', difficulty: 'Intermediate' },
+    { id: 'dhcp', title: 'DHCP Server', description: 'Dynamic address allocation', topic: 'Services', difficulty: 'Beginner' },
+    { id: 'ntp', title: 'NTP Synchronization', description: 'Time protocol setup', topic: 'Services', difficulty: 'Beginner' },
 ];
 
 const DEFAULT_CLI_STATE: CLIState = {
@@ -161,14 +192,14 @@ export default function LabsPage() {
                         <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6 flex items-center gap-2">
                             <Zap className="w-4 h-4 text-amber-500" /> Scenarios
                         </h3>
-                        <div className="space-y-3">
+                        <div className="space-y-3 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 pr-2">
                             {LAB_SCENARIOS.map(lab => (
                                 <button key={lab.id} className="w-full flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all text-left group">
-                                    <div>
-                                        <p className="text-xs font-black text-slate-900 dark:text-white group-hover:text-cisco-blue">{lab.title}</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">{lab.difficulty}</p>
+                                    <div className="flex-1 min-w-0 mr-2">
+                                        <p className="text-xs font-black text-slate-900 dark:text-white group-hover:text-cisco-blue truncate">{lab.title}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase truncate">{lab.topic} • {lab.difficulty}</p>
                                     </div>
-                                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-cisco-blue" />
+                                    <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-cisco-blue flex-shrink-0" />
                                 </button>
                             ))}
                         </div>

@@ -16,7 +16,12 @@ import {
     Globe,
     Terminal,
     Layers,
-    Sparkles
+    Sparkles,
+    Settings,
+    Cpu,
+    Wifi,
+    Cloud,
+    Code
 } from 'lucide-react';
 
 // Complete CCNA 200-301 Curriculum Structure
@@ -30,9 +35,17 @@ const CCNA_CURRICULUM = [
         subtopics: [
             { id: 'osi-model', name: 'OSI Model Layers', difficulty: 'beginner', minutes: 15 },
             { id: 'tcp-ip-model', name: 'TCP/IP Model', difficulty: 'beginner', minutes: 12 },
+            { id: 'binary-hex-conversion', name: 'Binary & Hexadecimal Conversion', difficulty: 'beginner', minutes: 15 },
+            { id: 'network-devices', name: 'Network Device Components', difficulty: 'beginner', minutes: 12 },
             { id: 'ipv4-addressing', name: 'IPv4 Addressing', difficulty: 'beginner', minutes: 20 },
+            { id: 'ipv6-addressing', name: 'IPv6 Addressing', difficulty: 'intermediate', minutes: 25 },
+            { id: 'classful-classless', name: 'Classful vs Classless Addressing', difficulty: 'beginner', minutes: 15 },
             { id: 'subnetting', name: 'Subnetting Basics (FLSM)', difficulty: 'intermediate', minutes: 30 },
+            { id: 'vlsm-cidr', name: 'VLSM & CIDR', difficulty: 'intermediate', minutes: 25 },
+            { id: 'network-cables', name: 'Network Cables & Connectors', difficulty: 'beginner', minutes: 10 },
+            { id: 'network-topologies', name: 'Network Topologies', difficulty: 'beginner', minutes: 12 },
             { id: 'tcp-vs-udp', name: 'TCP vs UDP', difficulty: 'beginner', minutes: 15 },
+            { id: 'arp-icmp', name: 'ARP & ICMP Protocols', difficulty: 'beginner', minutes: 12 },
         ],
     },
     {
@@ -44,8 +57,12 @@ const CCNA_CURRICULUM = [
         subtopics: [
             { id: 'vlan-basics', name: 'VLAN Basics', difficulty: 'beginner', minutes: 15 },
             { id: 'vlan-trunking', name: 'VLAN Trunking (802.1Q)', difficulty: 'intermediate', minutes: 20 },
+            { id: 'dtp-vtp', name: 'DTP & VTP', difficulty: 'intermediate', minutes: 18 },
             { id: 'stp-basics', name: 'Spanning Tree Protocol (STP)', difficulty: 'intermediate', minutes: 25 },
+            { id: 'rstp-pvst', name: 'Rapid STP & PVST+', difficulty: 'advanced', minutes: 20 },
             { id: 'etherchannel', name: 'EtherChannel (LACP/PAgP)', difficulty: 'intermediate', minutes: 22 },
+            { id: 'wireless-fundamentals', name: 'Wireless Fundamentals', difficulty: 'beginner', minutes: 15 },
+            { id: 'wlc-architecture', name: 'WLC & AP Architecture', difficulty: 'intermediate', minutes: 18 },
         ],
     },
     {
@@ -56,9 +73,36 @@ const CCNA_CURRICULUM = [
         description: 'Configure routing protocols and understand path selection',
         subtopics: [
             { id: 'routing-fundamentals', name: 'Routing Fundamentals', difficulty: 'beginner', minutes: 15 },
+            { id: 'routing-table', name: 'Routing Table & Path Selection', difficulty: 'beginner', minutes: 12 },
             { id: 'static-routing', name: 'Static Routing', difficulty: 'beginner', minutes: 18 },
+            { id: 'default-floating-routes', name: 'Default & Floating Routes', difficulty: 'intermediate', minutes: 15 },
+            { id: 'inter-vlan-routing', name: 'Inter-VLAN Routing (Router-on-a-Stick)', difficulty: 'intermediate', minutes: 22 },
+            { id: 'layer3-switching', name: 'Layer 3 Switching & SVIs', difficulty: 'intermediate', minutes: 18 },
             { id: 'ospf-single-area', name: 'OSPF Single Area', difficulty: 'intermediate', minutes: 30 },
+            { id: 'ospf-multi-area', name: 'OSPF Multi-Area', difficulty: 'advanced', minutes: 25 },
+            { id: 'ospf-neighbor-states', name: 'OSPF Neighbor States & DR/BDR', difficulty: 'advanced', minutes: 20 },
+            { id: 'administrative-distance', name: 'Administrative Distance', difficulty: 'intermediate', minutes: 12 },
             { id: 'hsrp-fhrp', name: 'First Hop Redundancy (HSRP/VRRP)', difficulty: 'intermediate', minutes: 20 },
+            { id: 'ipv6-routing', name: 'IPv6 Routing', difficulty: 'intermediate', minutes: 22 },
+        ],
+    },
+    {
+        id: 'ip-services',
+        name: 'IP Services',
+        icon: Settings,
+        weight: 10,
+        description: 'Configure DHCP, NAT, NTP, and network management protocols',
+        subtopics: [
+            { id: 'dhcp-config', name: 'DHCP Configuration', difficulty: 'beginner', minutes: 18 },
+            { id: 'dhcp-relay', name: 'DHCP Relay Agent (ip helper-address)', difficulty: 'intermediate', minutes: 15 },
+            { id: 'dns-basics', name: 'DNS Basics', difficulty: 'beginner', minutes: 12 },
+            { id: 'nat-types', name: 'NAT (Static, Dynamic, PAT)', difficulty: 'intermediate', minutes: 25 },
+            { id: 'ntp-config', name: 'NTP Configuration', difficulty: 'beginner', minutes: 10 },
+            { id: 'cdp-lldp', name: 'CDP & LLDP Discovery Protocols', difficulty: 'beginner', minutes: 12 },
+            { id: 'tftp-ftp', name: 'TFTP/FTP for IOS Management', difficulty: 'intermediate', minutes: 15 },
+            { id: 'snmp-syslog', name: 'SNMP & Syslog', difficulty: 'intermediate', minutes: 18 },
+            { id: 'qos-concepts', name: 'QoS Concepts', difficulty: 'intermediate', minutes: 15 },
+            { id: 'ssh-config', name: 'SSH Configuration', difficulty: 'beginner', minutes: 12 },
         ],
     },
     {
@@ -69,15 +113,40 @@ const CCNA_CURRICULUM = [
         description: 'Implement network security using ACLs, VPNs, and device hardening',
         subtopics: [
             { id: 'security-concepts', name: 'Security Concepts & Threats', difficulty: 'beginner', minutes: 15 },
+            { id: 'device-access-control', name: 'Device Access Control (Console/VTY)', difficulty: 'beginner', minutes: 12 },
+            { id: 'password-recovery', name: 'Password Recovery Procedures', difficulty: 'intermediate', minutes: 15 },
             { id: 'standard-acls', name: 'Standard ACLs', difficulty: 'beginner', minutes: 18 },
+            { id: 'extended-acls', name: 'Extended ACLs', difficulty: 'intermediate', minutes: 22 },
             { id: 'port-security', name: 'Port Security', difficulty: 'intermediate', minutes: 15 },
-            { id: 'vpn-types', name: 'VPN Types (Site-to-Site)', difficulty: 'intermediate', minutes: 15 },
+            { id: 'dhcp-snooping', name: 'DHCP Snooping', difficulty: 'intermediate', minutes: 15 },
+            { id: 'dai', name: 'Dynamic ARP Inspection (DAI)', difficulty: 'intermediate', minutes: 15 },
+            { id: 'aaa-concepts', name: 'AAA Concepts', difficulty: 'intermediate', minutes: 18 },
+            { id: 'vpn-types', name: 'VPN Types (Site-to-Site, Remote Access)', difficulty: 'intermediate', minutes: 15 },
+            { id: 'wireless-security', name: 'Wireless Security (WPA2/WPA3)', difficulty: 'intermediate', minutes: 15 },
+            { id: 'firewall-concepts', name: 'Firewall Concepts', difficulty: 'beginner', minutes: 12 },
+        ],
+    },
+    {
+        id: 'automation-programmability',
+        name: 'Automation & Programmability',
+        icon: Code,
+        weight: 10,
+        description: 'Understand network automation, APIs, and configuration management',
+        subtopics: [
+            { id: 'rest-apis', name: 'REST APIs', difficulty: 'intermediate', minutes: 18 },
+            { id: 'json-xml', name: 'JSON & XML Data Formats', difficulty: 'beginner', minutes: 12 },
+            { id: 'cisco-dna-center', name: 'Cisco DNA Center', difficulty: 'intermediate', minutes: 20 },
+            { id: 'ansible-basics', name: 'Ansible Basics', difficulty: 'intermediate', minutes: 18 },
+            { id: 'python-networking', name: 'Python for Networking', difficulty: 'intermediate', minutes: 22 },
+            { id: 'controller-networking', name: 'Controller-Based Networking', difficulty: 'intermediate', minutes: 15 },
         ],
     },
 ];
 
 export default function TopicsPage() {
     const [expandedDomain, setExpandedDomain] = useState<string | null>(null);
+
+    const totalSubtopics = CCNA_CURRICULUM.reduce((sum, domain) => sum + domain.subtopics.length, 0);
 
     return (
         <div className="space-y-12 max-w-6xl mx-auto pb-20">
@@ -100,22 +169,22 @@ export default function TopicsPage() {
 
                 <div className="glass-card flex items-center gap-6 py-4 px-8 border-white/40 shadow-sm">
                     <div className="text-center">
-                        <p className="text-2xl font-black text-slate-900 dark:text-white">64%</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Progress</p>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white">Start</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Your Journey</p>
                     </div>
                     <div className="h-10 w-[1px] bg-slate-200 dark:bg-white/10" />
                     <div className="text-center">
-                        <p className="text-2xl font-black text-emerald-500">12/48</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Modules</p>
+                        <p className="text-2xl font-black text-emerald-500">{totalSubtopics}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Modules</p>
                     </div>
                 </div>
             </div>
 
-            {/* Overall Progress Viz */}
+            {/* Overall Progress Viz (Static for now, implies start) */}
             <div className="h-3 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200 dark:border-white/5 relative">
                 <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: '64%' }}
+                    animate={{ width: '5%' }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
                     className="h-full bg-gradient-to-r from-cisco-blue via-cyan-400 to-indigo-500 rounded-full shadow-[0_0_20px_rgba(4,159,217,0.3)]"
                 />
@@ -126,7 +195,8 @@ export default function TopicsPage() {
             <div className="grid gap-6">
                 {CCNA_CURRICULUM.map((domain, index) => {
                     const isExpanded = expandedDomain === domain.id;
-                    const progress = [85, 42, 12, 0][index] || 0;
+                    // Mock progress removed, default to 0 to look clean for generic user
+                    const progress = 0;
 
                     return (
                         <div key={domain.id} className="group">
@@ -188,8 +258,9 @@ export default function TopicsPage() {
                                         >
                                             <div className="pt-10 mt-6 border-t border-slate-100 dark:border-white/5 grid gap-4">
                                                 {domain.subtopics.map((topic, subIndex) => {
-                                                    const isDone = index === 0 && subIndex < 3;
-                                                    const isLocked = index > 2;
+                                                    // Remove mock lock/done state for generic view
+                                                    const isDone = false;
+                                                    const isLocked = false;
 
                                                     return (
                                                         <motion.div
@@ -200,16 +271,14 @@ export default function TopicsPage() {
                                                             className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-50/50 dark:bg-white/2 hover:bg-white dark:hover:bg-white/5 border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all group/item"
                                                         >
                                                             <div className="flex items-center gap-6">
-                                                                <div className={`flex-shrink-0 w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all ${isDone ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20' :
-                                                                        isLocked ? 'border-slate-200 dark:border-white/5 text-slate-300' : 'border-slate-300 dark:border-white/20 text-transparent'
-                                                                    }`}>
-                                                                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : isLocked ? <Lock className="w-4 h-4" /> : null}
+                                                                <div className={`flex-shrink-0 w-8 h-8 rounded-xl border-2 flex items-center justify-center transition-all border-slate-300 dark:border-white/20 text-transparent`}>
+                                                                    {/* No icon for incomplete */}
                                                                 </div>
 
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-0.5">
                                                                         <span className="text-[10px] font-black text-cisco-blue">{index + 1}.{subIndex + 1}</span>
-                                                                        <h3 className={`font-bold transition-colors ${isLocked ? 'text-slate-400' : 'text-slate-900 dark:text-white group-hover/item:text-cisco-blue'}`}>
+                                                                        <h3 className={`font-bold transition-colors text-slate-900 dark:text-white group-hover/item:text-cisco-blue`}>
                                                                             {topic.name}
                                                                         </h3>
                                                                     </div>
@@ -227,21 +296,12 @@ export default function TopicsPage() {
                                                             </div>
 
                                                             <div className="flex items-center gap-4">
-                                                                {isLocked ? (
-                                                                    <div className="flex items-center gap-2 px-6 py-2.5 text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 rounded-xl cursor-not-allowed">
-                                                                        <Lock className="w-3 h-3" /> Locked
-                                                                    </div>
-                                                                ) : (
-                                                                    <Link
-                                                                        href={`/learn/topics/${domain.id}/${topic.id}`}
-                                                                        className={`flex items-center gap-2 px-8 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-widest border ${isDone
-                                                                                ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-600 hover:border-cisco-blue hover:text-cisco-blue shadow-sm'
-                                                                                : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent hover:scale-105 active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5'
-                                                                            }`}
-                                                                    >
-                                                                        {isDone ? 'Review' : 'Deploy Module'} <ArrowRight className="w-3 h-3" />
-                                                                    </Link>
-                                                                )}
+                                                                <Link
+                                                                    href={`/learn/topics/${domain.id}/${topic.id}`}
+                                                                    className={`flex items-center gap-2 px-8 py-2.5 text-xs font-black rounded-xl transition-all uppercase tracking-widest border bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent hover:scale-105 active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5`}
+                                                                >
+                                                                    Start Module <ArrowRight className="w-3 h-3" />
+                                                                </Link>
                                                             </div>
                                                         </motion.div>
                                                     );
@@ -271,10 +331,10 @@ export default function TopicsPage() {
                     <div className="flex-1 space-y-2">
                         <h3 className="text-2xl font-black">Strategic Preparation</h3>
                         <p className="text-slate-400 text-sm max-w-xl">
-                            Did you know? Network Connectivity and Network Access make up 45% of the total exam weight. Focus heavily on these areas during your final weeks.
+                            Network Connectivity and Network Access make up 45% of the total exam weight. Focus heavily on these areas.
                         </p>
                     </div>
-                    <button className="btn-premium px-10 py-4 text-xs">Access Exam Simulator</button>
+                    <Link href="/learn/quiz/23" className="btn-premium px-10 py-4 text-xs">Access Exam Simulator</Link>
                 </div>
             </motion.div>
         </div>

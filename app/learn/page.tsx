@@ -1,34 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
-    Zap,
     Target,
     Trophy,
     Calendar,
-    ArrowUpRight,
     ChevronRight,
     Sparkles,
     Flame,
     Layout,
     Terminal,
     MessageSquare,
-    BookOpen
+    BookOpen,
+    Zap,
+    Loader2
 } from 'lucide-react';
 
-const STATS = [
-    { label: 'Overall Progress', value: '64%', icon: Target, color: 'text-cisco-blue' },
-    { label: 'Skill Level', value: 'Intermediate', icon: Trophy, color: 'text-amber-500' },
-    { label: 'Day Streak', value: '12 Days', icon: Flame, color: 'text-rose-500' },
-    { label: 'Next Goal', value: 'IPv6 Subnetting', icon: Sparkles, color: 'text-violet-500' },
+const STATIC_STATS = [
+    { label: 'Overall Progress', value: '19%', icon: Target, color: 'text-cisco-blue' },
+    { label: 'Skill Level', value: 'Novice', icon: Trophy, color: 'text-amber-500' },
+    { label: 'Day Streak', value: '1 Day', icon: Flame, color: 'text-rose-500' },
+    { label: 'Next Goal', value: 'OSI Model', icon: Sparkles, color: 'text-violet-500' },
 ];
 
 const DOMAINS = [
-    { id: '1', title: 'Network Fundamentals', progress: 85 },
-    { id: '2', title: 'Network Access', progress: 42 },
-    { id: '3', title: 'IP Connectivity', progress: 12 },
+    { id: '1', title: 'Network Fundamentals', progress: 33 },
+    { id: '2', title: 'Network Access', progress: 25 },
+    { id: '3', title: 'IP Connectivity', progress: 10 },
     { id: '4', title: 'IP Services', progress: 0 },
 ];
 
@@ -39,6 +39,36 @@ const QUICK_ACTIONS = [
 ];
 
 export default function StudentDashboard() {
+    const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const response = await fetch('/api/auth/session');
+                const data = await response.json();
+                if (data.success) {
+                    setUser(data.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch user', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="h-screen flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-cisco-blue animate-spin" />
+            </div>
+        );
+    }
+
+    const displayName = user?.name || user?.email?.split('@')[0] || 'Student';
+
     return (
         <div className="space-y-10 pb-10">
             {/* Welcome Header */}
@@ -56,7 +86,7 @@ export default function StudentDashboard() {
                         animate={{ opacity: 1, y: 0 }}
                         className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight"
                     >
-                        Welcome back, <span className="text-cisco-blue">Alex</span>.
+                        Welcome back, <span className="text-cisco-blue capitalize">{displayName}</span>.
                     </motion.h2>
                 </div>
 
@@ -74,7 +104,7 @@ export default function StudentDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {STATS.map((stat, i) => (
+                {STATIC_STATS.map((stat, i) => (
                     <motion.div
                         key={stat.label}
                         initial={{ opacity: 0, y: 20 }}
@@ -108,15 +138,15 @@ export default function StudentDashboard() {
                             <div className="space-y-6 flex-1">
                                 <div className="flex items-center gap-2">
                                     <div className="px-3 py-1 bg-cisco-blue text-white text-[10px] font-black uppercase rounded-lg tracking-widest">Active Module</div>
-                                    <span className="text-slate-400 text-xs font-bold">• 15 Lessons Remaining</span>
+                                    <span className="text-slate-400 text-xs font-bold">• Continued Learning</span>
                                 </div>
 
                                 <h2 className="text-3xl font-black text-slate-900 dark:text-white leading-tight">
-                                    Domain 2.0: Network <br /> Access & Switching
+                                    Domain 1.0: Network <br /> Fundamentals
                                 </h2>
 
                                 <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md">
-                                    Master the complexities of VLANs, Trunking, and the Spanning Tree Protocol. You're 42% of the way to completing this domain.
+                                    Start your journey by mastering the basics of networking protocols, the OSI model, and TCP/IP.
                                 </p>
 
                                 <div className="flex items-center gap-4">
@@ -133,11 +163,11 @@ export default function StudentDashboard() {
                             <div className="relative hidden md:flex items-center justify-center p-8">
                                 <svg className="w-48 h-48 -rotate-90">
                                     <circle cx="96" cy="96" r="80" fill="none" stroke="currentColor" strokeWidth="8" className="text-slate-100 dark:text-slate-800" />
-                                    <circle cx="96" cy="96" r="80" fill="none" stroke="currentColor" strokeWidth="12" strokeDasharray={502} strokeDashoffset={502 * (1 - 0.42)} strokeLinecap="round" className="text-cisco-blue drop-shadow-[0_0_10px_rgba(4,159,217,0.5)]" />
+                                    <circle cx="96" cy="96" r="80" fill="none" stroke="currentColor" strokeWidth="12" strokeDasharray={502} strokeDashoffset={502 * (1 - 0.33)} strokeLinecap="round" className="text-cisco-blue drop-shadow-[0_0_10px_rgba(4,159,217,0.5)]" />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-4xl font-black text-slate-900 dark:text-white">42%</span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Complete</span>
+                                    <span className="text-4xl font-black text-slate-900 dark:text-white">33%</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Module 1</span>
                                 </div>
                             </div>
                         </div>
@@ -209,9 +239,8 @@ export default function StudentDashboard() {
 
                         <div className="space-y-6">
                             {[
-                                { type: 'achievement', text: 'Earned "VLAN Master" badge', date: '2h ago' },
-                                { type: 'quiz', text: 'Scored 92% in IPv4 Quiz', date: '5h ago' },
-                                { type: 'lab', text: 'Completed Router Basics Lab', date: 'Yesterday' },
+                                { type: 'login', text: 'Started a new session', date: 'Just now' },
+                                { type: 'view', text: 'Viewed Learning Dashboard', date: '1m ago' },
                             ].map((item, i) => (
                                 <div key={i} className="flex gap-4 items-start group">
                                     <div className="w-2 h-2 rounded-full bg-cisco-blue mt-1.5 group-hover:scale-150 transition-transform"></div>
