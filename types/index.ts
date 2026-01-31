@@ -256,7 +256,8 @@ export interface LabAttemptData {
 export type CLIContext = 'user' | 'privileged' | 'global_config' | 'interface_config' | 'router_config' | 'line_config' | 'vlan_config' | 'dhcp_config' | 'acl_config';
 
 export interface CLICommand {
-    id: string;
+    id?: string;
+    device: string;
     command: string;
     output: string;
     timestamp: Date;
