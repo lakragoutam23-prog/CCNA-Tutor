@@ -275,6 +275,180 @@ function preValidateCommand(command: string): CLIResponse | null {
     return null; // Command passes validation
 }
 
+/**
+ * Validates if a command is allowed in the current mode (like real Cisco IOS)
+ * This is critical for realistic CLI simulation
+ */
+function validateCommandMode(command: string, mode: string): CLIResponse | null {
+    const lowerCommand = command.toLowerCase().trim();
+
+    // Commands available in user mode (very limited)
+    const userModeCommands = [
+        'enable', 'exit', 'logout', 'quit', 'help', '?',
+        'ping', 'traceroute', 'telnet', 'ssh',
+        'show version', 'show clock', 'show users', 'show sessions',
+        'show history', 'terminal'
+    ];
+
+    // "show" commands that require at least privileged mode
+    const privilegedShowCommands = [
+        'show run', 'show start', 'show ip', 'show interface', 'show vlan',
+        'show spanning', 'show cdp', 'show lldp', 'show arp', 'show mac',
+        'show access', 'show route', 'show protocol', 'show controllers',
+        'show flash', 'show boot', 'show logging', 'show ntp', 'show snmp'
+    ];
+
+    // Commands only valid in global config mode
+    const globalConfigCommands = [
+        'hostname', 'enable', 'line', 'interface', 'router', 'ip route',
+        'ip default-gateway', 'ip domain', 'ip name-server', 'ip dhcp',
+        'access-list', 'ip access-list', 'vlan', 'spanning-tree',
+        'service', 'no service', 'logging', 'ntp', 'snmp', 'banner',
+        'username', 'crypto', 'key', 'aaa'
+    ];
+
+    // Commands only valid in interface config mode
+    const interfaceConfigCommands = [
+        'ip address', 'no ip address', 'shutdown', 'no shutdown',
+        'description', 'speed', 'duplex', 'switchport', 'no switchport',
+        'channel-group', 'standby', 'encapsulation', 'bandwidth',
+        'clock rate', 'ip helper', 'ip nat', 'ip ospf', 'ip access-group'
+    ];
+
+    // Handle "do" command (allows exec commands from config mode)
+    if (lowerCommand.startsWith('do ')) {
+        if (mode === 'user' || mode === 'privileged') {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.\n% 'do' is only valid in configuration modes",
+                error: "Invalid command for this mode"
+            };
+        }
+        // Strip "do " and continue - the rest of the command will be processed as privileged mode command
+        return null;
+    }
+
+    // USER MODE validation
+    if (mode === 'user') {
+        // Check if it's an allowed user mode command
+        const isUserCommand = userModeCommands.some(cmd => lowerCommand.startsWith(cmd));
+
+        // Check for show commands that require privileged mode
+        if (lowerCommand.startsWith('sh')) {
+            const requiresPrivileged = privilegedShowCommands.some(cmd =>
+                lowerCommand.startsWith(cmd.replace('show', 'sh')) ||
+                lowerCommand.startsWith(cmd)
+            );
+            if (requiresPrivileged) {
+                return {
+                    valid: false,
+                    output: "% Invalid input detected at '^' marker.\n\nTranslating \"" + command + "\"\n% Unknown command or computer name, or unable to find computer address",
+                    error: "Command requires privileged mode"
+                };
+            }
+        }
+
+        // Check for config commands in user mode
+        if (lowerCommand.startsWith('conf') || lowerCommand.startsWith('config')) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.",
+                error: "Command requires privileged mode"
+            };
+        }
+
+        // Check for interface/hostname and other config commands
+        if (globalConfigCommands.some(cmd => lowerCommand.startsWith(cmd))) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.",
+                error: "Configuration command not valid in User EXEC mode"
+            };
+        }
+    }
+
+    // PRIVILEGED MODE validation
+    if (mode === 'privileged') {
+        // Config commands are not allowed directly in privileged mode
+        if (interfaceConfigCommands.some(cmd => lowerCommand.startsWith(cmd))) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.",
+                error: "Command only valid in interface configuration mode"
+            };
+        }
+
+        // hostname, line, router commands need config mode
+        const needsConfigMode = ['hostname', 'line vty', 'line con', 'router ', 'access-list', 'ip access-list', 'ip route'];
+        if (needsConfigMode.some(cmd => lowerCommand.startsWith(cmd))) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.",
+                error: "Command only valid in global configuration mode"
+            };
+        }
+    }
+
+    // CONFIG MODES - show commands need "do" prefix
+    if (mode.includes('config')) {
+        // Show commands without "do" prefix are invalid in config modes
+        if (lowerCommand.startsWith('sh ') || lowerCommand === 'sh' ||
+            lowerCommand.startsWith('show ') || lowerCommand === 'show') {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.\n\nUse 'do show ...' to run EXEC commands from configuration mode.",
+                error: "In configuration mode, use 'do show ...' for EXEC commands"
+            };
+        }
+
+        // Ping, traceroute without "do"
+        if (lowerCommand.startsWith('ping ') || lowerCommand.startsWith('traceroute ')) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.\n\nUse 'do " + command + "' to run this command from configuration mode.",
+                error: "Use 'do' prefix for EXEC commands in config mode"
+            };
+        }
+
+        // Copy, write commands without "do"
+        if (lowerCommand.startsWith('copy ') || lowerCommand.startsWith('write ') || lowerCommand === 'wr') {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.\n\nUse 'do " + command + "' to run this command from configuration mode.",
+                error: "Use 'do' prefix for EXEC commands in config mode"
+            };
+        }
+    }
+
+    // INTERFACE CONFIG MODE - specific validation
+    if (mode === 'interface_config') {
+        // Don't allow global config commands in interface mode (except exit/end)
+        if (lowerCommand.startsWith('hostname') || lowerCommand.startsWith('router ') ||
+            lowerCommand.startsWith('line ') || lowerCommand.startsWith('vlan ')) {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.",
+                error: "Command not valid in interface configuration mode. Use 'exit' first."
+            };
+        }
+    }
+
+    // GLOBAL CONFIG MODE - interface commands need interface mode
+    if (mode === 'global_config') {
+        // Interface-specific commands need interface mode
+        if (lowerCommand.startsWith('ip address') || lowerCommand.startsWith('switchport') ||
+            lowerCommand.startsWith('no shutdown') || lowerCommand === 'shutdown') {
+            return {
+                valid: false,
+                output: "% Invalid input detected at '^' marker.\n\nThis command is only valid in interface configuration mode.\nUse 'interface <name>' first.",
+                error: "Command only valid in interface configuration mode"
+            };
+        }
+    }
+
+    return null; // Command passes mode validation
+}
+
 const SYSTEM_PROMPT = `You are a Cisco IOS CLI simulator for CCNA training. You must respond exactly like a real Cisco router or switch would.
 
 CURRENT DEVICE STATE:
@@ -338,6 +512,12 @@ export async function interpretCommand(
     const validationError = preValidateCommand(command);
     if (validationError) {
         return validationError;
+    }
+
+    // Validate command is allowed in current mode (like real Cisco IOS)
+    const modeError = validateCommandMode(command, state.mode);
+    if (modeError) {
+        return modeError;
     }
 
     const modeNames: Record<string, string> = {
