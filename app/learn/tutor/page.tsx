@@ -9,6 +9,7 @@ import {
     Lightbulb,
     MessageSquare,
     Mic,
+    MicOff,
     Volume2,
     Settings,
     MoreHorizontal,
@@ -31,7 +32,64 @@ export default function TutorPage() {
     const [input, setInput] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isListening, setIsListening] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const recognitionRef = useRef<any>(null);
+
+    // Initialize Speech Recognition
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event: any) => {
+                    const transcript = Array.from(event.results)
+                        .map((result: any) => result[0])
+                        .map((result: any) => result.transcript)
+                        .join('');
+
+                    if (event.results[0].isFinal) {
+                        setInput(prev => prev + (prev ? ' ' : '') + transcript);
+                        setIsListening(false);
+                    }
+                };
+
+                recognition.onerror = (event: any) => {
+                    console.error('Speech recognition error', event.error);
+                    setIsListening(false);
+                };
+
+                recognition.onend = () => {
+                    setIsListening(false);
+                };
+
+                recognitionRef.current = recognition;
+            }
+        }
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) {
+            alert('Speech recognition is not supported in this browser.');
+            return;
+        }
+
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                recognitionRef.current.start();
+                setIsListening(true);
+            } catch (err) {
+                console.error("Failed to start recognition:", err);
+            }
+        }
+    };
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -129,8 +187,8 @@ export default function TutorPage() {
                                         {/* Content */}
                                         <div className={`space-y-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                                             <div className={`p-6 rounded-[2rem] border shadow-sm ${msg.role === 'user'
-                                                    ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-tr-none'
-                                                    : 'glass border-white/40 dark:border-white/5 text-slate-900 dark:text-white rounded-tl-none prose prose-slate dark:prose-invert max-w-none'
+                                                ? 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white rounded-tr-none'
+                                                : 'glass border-white/40 dark:border-white/5 text-slate-900 dark:text-white rounded-tl-none prose prose-slate dark:prose-invert max-w-none'
                                                 }`}>
                                                 {msg.role === 'assistant' ? (
                                                     <MarkdownMessage content={msg.content} />
@@ -189,8 +247,11 @@ export default function TutorPage() {
                                 className="flex-1 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white font-medium text-sm placeholder-slate-400 py-4"
                             />
                             <div className="flex items-center gap-2">
-                                <button className="p-3 text-slate-400 hover:text-cisco-blue transition-colors hidden sm:block">
-                                    <Mic className="w-5 h-5" />
+                                <button
+                                    onClick={toggleListening}
+                                    className={`p-3 transition-colors hidden sm:block rounded-xl ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-slate-400 hover:text-cisco-blue'}`}
+                                >
+                                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                                 </button>
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
