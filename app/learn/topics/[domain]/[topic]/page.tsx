@@ -68,7 +68,21 @@ const TOPIC_DEFINITIONS: Record<string, { name: string; domain: string; domainNa
     'cisco-dna-center': { name: 'Cisco DNA Center', domain: 'automation-programmability', domainName: 'Automation & Programmability' },
     'ansible-basics': { name: 'Ansible Basics', domain: 'automation-programmability', domainName: 'Automation & Programmability' },
     'python-networking': { name: 'Python for Networking', domain: 'automation-programmability', domainName: 'Automation & Programmability' },
-    'controller-networking': { name: 'Controller-Based Networking', domain: 'automation-programmability', domainName: 'Automation & Programmability' },
+    'binary-hex-conversion': { name: 'Binary & Hexadecimal Conversion', domain: 'network-fundamentals', domainName: 'Network Fundamentals' },
+    'network-devices': { name: 'Network Device Components', domain: 'network-fundamentals', domainName: 'Network Fundamentals' },
+    'classful-classless': { name: 'Classful vs Classless Addressing', domain: 'network-fundamentals', domainName: 'Network Fundamentals' },
+    'routing-table': { name: 'Routing Table & Path Selection', domain: 'ip-connectivity', domainName: 'IP Connectivity' },
+    'inter-vlan-routing': { name: 'Inter-VLAN Routing (Router-on-a-Stick)', domain: 'ip-connectivity', domainName: 'IP Connectivity' },
+    'layer3-switching': { name: 'Layer 3 Switching & SVIs', domain: 'ip-connectivity', domainName: 'IP Connectivity' },
+    'ospf-neighbor-states': { name: 'OSPF Neighbor States & DR/BDR', domain: 'ip-connectivity', domainName: 'IP Connectivity' },
+    'dhcp-relay': { name: 'DHCP Relay Agent (ip helper-address)', domain: 'ip-services', domainName: 'IP Services' },
+    'cdp-lldp': { name: 'CDP & LLDP Discovery Protocols', domain: 'ip-services', domainName: 'IP Services' },
+    'tftp-ftp': { name: 'TFTP/FTP for IOS Management', domain: 'ip-services', domainName: 'IP Services' },
+    'security-concepts': { name: 'Security Concepts & Threats', domain: 'security-fundamentals', domainName: 'Security Fundamentals' },
+    'device-access-control': { name: 'Device Access Control (Console/VTY)', domain: 'security-fundamentals', domainName: 'Security Fundamentals' },
+    'password-recovery': { name: 'Password Recovery Procedures', domain: 'security-fundamentals', domainName: 'Security Fundamentals' },
+    'dai': { name: 'Dynamic ARP Inspection (DAI)', domain: 'security-fundamentals', domainName: 'Security Fundamentals' },
+    // Rest of the existing definitions...
 };
 
 export default function TopicDetailPage() {
