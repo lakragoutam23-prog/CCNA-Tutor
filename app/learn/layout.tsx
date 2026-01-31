@@ -1,145 +1,184 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import type { SessionUser } from '@/types';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    LayoutDashboard,
+    BookOpen,
+    Terminal,
+    ClipboardList,
+    MessageSquare,
+    Trophy,
+    User,
+    Settings,
+    LogOut,
+    Menu,
+    X,
+    Sparkles,
+    Zap,
+    Globe
+} from 'lucide-react';
 
-const navItems = [
-    { href: '/learn', icon: '📚', label: 'Learn' },
-    { href: '/learn/topics', icon: '📖', label: 'Topics' },
-    { href: '/learn/tutor', icon: '🤖', label: 'AI Tutor' },
-    { href: '/learn/quiz', icon: '⚡', label: 'Quizzes' },
-    { href: '/learn/flashcards', icon: '🎴', label: 'Flashcards' },
-    { href: '/learn/labs', icon: '💻', label: 'Labs' },
-    { href: '/learn/exam', icon: '📝', label: 'Exam Mode' },
-    { href: '/learn/progress', icon: '📊', label: 'Progress' },
+const MENU_ITEMS = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: '/learn' },
+    { icon: BookOpen, label: 'Curriculum', href: '/learn/topics' },
+    { icon: MessageSquare, label: 'AI Tutor', href: '/learn/tutor' },
+    { icon: Terminal, label: 'Labs', href: '/learn/labs' },
+    { icon: ClipboardList, label: 'Quizzes', href: '/learn/quiz' },
+    { icon: Trophy, label: 'Achievements', href: '/learn/achievements' },
 ];
 
-export default function LearnLayout({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<SessionUser | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function LearnLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-    const router = useRouter();
-
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const response = await fetch('/api/auth/session');
-                const data = await response.json();
-                if (data.success) {
-                    setUser(data.data);
-                } else {
-                    router.push('/login');
-                }
-            } catch (error) {
-                router.push('/login');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchUser();
-    }, [router]);
-
-    const handleLogout = async () => {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        router.push('/');
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin h-8 w-8 border-4 border-cisco-blue border-t-transparent rounded-full" />
-            </div>
-        );
-    }
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white dark:bg-gray-800 shadow-sm px-4 py-3 flex items-center justify-between">
-                <button onClick={() => setSidebarOpen(true)} className="p-2">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-                <Link href="/learn" className="flex items-center space-x-2">
-                    <svg className="w-8 h-8 text-cisco-blue" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                    </svg>
-                    <span className="font-bold">CCNA Tutor</span>
-                </Link>
-                <div className="w-10" />
-            </header>
-
-            {/* Sidebar Overlay */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-                    onClick={() => setSidebarOpen(false)}
-                />
-            )}
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex overflow-hidden">
+            {/* Sidebar Overlay (Mobile) */}
+            <AnimatePresence>
+                {!isSidebarOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsSidebarOpen(true)}
+                        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Sidebar */}
-            <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                <div className="h-full flex flex-col">
-                    {/* Logo */}
-                    <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                        <Link href="/learn" className="flex items-center space-x-2" onClick={() => setSidebarOpen(false)}>
-                            <svg className="w-10 h-10 text-cisco-blue" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-                            </svg>
-                            <span className="text-xl font-bold">CCNA Tutor</span>
+            <motion.aside
+                initial={false}
+                animate={{
+                    width: isSidebarOpen ? '280px' : '0px',
+                    opacity: isSidebarOpen ? 1 : 0
+                }}
+                className="fixed inset-y-0 left-0 z-50 lg:relative flex flex-col glass border-r border-white/40 dark:border-white/5 shadow-2xl overflow-hidden"
+            >
+                {/* Brand */}
+                <div className="p-8 flex items-center justify-between">
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="w-10 h-10 bg-gradient-to-br from-cisco-blue to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:rotate-12">
+                            <Globe className="w-6 h-6" />
+                        </div>
+                        <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                            CCNA<span className="text-cisco-blue">Tutor</span>
+                        </span>
+                    </Link>
+                    <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-400">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* Navigation */}
+                <nav className="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+                    {MENU_ITEMS.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`relative group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                                        ? 'bg-cisco-blue text-white shadow-lg shadow-cisco-blue/20'
+                                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    }`}
+                            >
+                                <item.icon className="w-5 h-5" />
+                                <span className="font-bold text-sm tracking-wide">{item.label}</span>
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-active"
+                                        className="absolute inset-0 bg-white/10 rounded-xl pointer-events-none"
+                                    />
+                                )}
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                {/* Bottom Section */}
+                <div className="p-6 border-t border-white/40 dark:border-white/5 space-y-4">
+                    {/* Quick Stats Card */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-inner relative overflow-hidden group">
+                        <Sparkles className="absolute -top-2 -right-2 w-12 h-12 text-white/10 group-hover:rotate-45 transition-transform" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Weekly Streak</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-black">5 Days</span>
+                            <span className="text-xs text-cisco-blue font-bold flex items-center gap-1">
+                                <Zap className="w-3 h-3 fill-current" /> +20xp
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
+                        <Link href="/learn/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">
+                            <User className="w-4 h-4" />
+                            <span>Profile</span>
+                        </Link>
+                        <Link href="/login" className="flex items-center gap-3 px-4 py-2 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors">
+                            <LogOut className="w-4 h-4" />
+                            <span>Sign Out</span>
                         </Link>
                     </div>
+                </div>
+            </motion.aside>
 
-                    {/* Navigation */}
-                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                        {navItems.map((item) => {
-                            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setSidebarOpen(false)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                        ? 'bg-cisco-blue text-white'
-                                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                                        }`}
-                                >
-                                    <span className="text-xl">{item.icon}</span>
-                                    <span className="font-medium">{item.label}</span>
-                                </Link>
-                            );
-                        })}
-                    </nav>
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col h-screen overflow-hidden">
+                {/* Topheader */}
+                <header className="h-20 glass border-b border-white/40 dark:border-white/5 px-8 flex items-center justify-between z-30">
+                    <div className="flex items-center gap-4">
+                        {!isSidebarOpen && (
+                            <button
+                                onClick={() => setIsSidebarOpen(true)}
+                                className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-sm"
+                            >
+                                <Menu className="w-6 h-6 text-slate-600" />
+                            </button>
+                        )}
+                        <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                            {MENU_ITEMS.find(item => item.href === pathname)?.label || 'Learning Hub'}
+                        </h1>
+                    </div>
 
-                    {/* User Section */}
-                    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="w-10 h-10 rounded-full bg-cisco-blue flex items-center justify-center text-white font-semibold">
-                                {user?.email?.[0]?.toUpperCase() || 'U'}
+                    <div className="flex items-center gap-4">
+                        {/* Notification Bell Mockup */}
+                        <button className="relative p-2 rounded-xl hover:bg-slate-100 transition-colors">
+                            <div className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></div>
+                            <div className="w-6 h-6 text-slate-400">🔔</div>
+                        </button>
+
+                        {/* User Avatar */}
+                        <div className="flex items-center gap-3 pl-4 border-l border-slate-200 dark:border-white/10">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-black text-slate-900 dark:text-white">Alex Networker</p>
+                                <p className="text-[10px] font-bold text-cisco-blue uppercase tracking-tighter">Gold Tier Member</p>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-medium truncate">{user?.email}</p>
-                                <p className="text-sm text-gray-500 capitalize">{user?.role?.replace('_', ' ')}</p>
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cisco-blue to-cyan-400 p-[2px] shadow-sm">
+                                <div className="w-full h-full rounded-[9px] bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-black text-slate-500">
+                                    AN
+                                </div>
                             </div>
                         </div>
-                        <button onClick={handleLogout} className="btn-ghost w-full justify-center text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
-                            Sign Out
-                        </button>
                     </div>
-                </div>
-            </aside>
+                </header>
 
-            {/* Main Content */}
-            <main className="lg:pl-64 pt-16 lg:pt-0 min-h-screen">
-                <div className="p-6">
-                    {children}
-                </div>
-            </main>
+                {/* Scrollable Content */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+                    <motion.div
+                        key={pathname}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="max-w-7xl mx-auto"
+                    >
+                        {children}
+                    </motion.div>
+                </main>
+            </div>
         </div>
     );
 }
