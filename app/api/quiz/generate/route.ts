@@ -287,7 +287,7 @@ export async function POST(request: NextRequest) {
 }
 
 function generateFallbackQuestions(topics: string[], count: number) {
-    // Topic-specific fallback questions
+    // Topic-specific fallback questions - Expanded
     const topicQuestions: Record<string, any[]> = {
         'OSI': [
             { questionText: 'Which layer of the OSI model handles logical addressing?', options: ['Data Link Layer', 'Network Layer', 'Transport Layer', 'Session Layer'], correctAnswer: 'B', explanation: 'The Network Layer (Layer 3) handles logical IP addressing.', topic: 'OSI' },
@@ -348,17 +348,60 @@ function generateFallbackQuestions(topics: string[], count: number) {
             { questionText: 'What is the main advantage of RSTP over STP?', options: ['Lower cost', 'Faster convergence', 'More VLANs', 'Better security'], correctAnswer: 'B', explanation: 'RSTP provides faster convergence (seconds vs 30-50 seconds for STP).', topic: 'RSTP' },
             { questionText: 'What are the RSTP port states?', options: ['Blocking, Listening, Learning, Forwarding', 'Discarding, Learning, Forwarding', 'Blocked, Unblocked', 'Active, Passive'], correctAnswer: 'B', explanation: 'RSTP has only 3 port states: Discarding, Learning, Forwarding.', topic: 'RSTP' },
         ],
+        'Security': [
+            { questionText: 'Which protocol is used for secure remote access?', options: ['Telnet', 'SSH', 'FTP', 'HTTP'], correctAnswer: 'B', explanation: 'SSH (Secure Shell) provides encrypted remote access.', topic: 'Security' },
+            { questionText: 'What is the primary function of a firewall?', options: ['Route packets', 'Filter traffic', 'Provide access', 'Encrypt data'], correctAnswer: 'B', explanation: 'Firewalls filter traffic based on security rules.', topic: 'Security' },
+            { questionText: 'Which attack involves overwhelming a server with traffic?', options: ['Phishing', 'DoS', 'Man-in-the-Middle', 'Spoofing'], correctAnswer: 'B', explanation: 'DoS (Denial of Service) attacks aim to make a service unavailable.', topic: 'Security' },
+        ],
+        'Automation': [
+            { questionText: 'Which data format is commonly used with REST APIs?', options: ['HTML', 'XML', 'JSON', 'Binary'], correctAnswer: 'C', explanation: 'JSON is the standard format for REST APIs.', topic: 'Automation' },
+            { questionText: 'What is a benefit of network automation?', options: ['Slower deployment', 'Increased errors', 'Consistency', 'More manual work'], correctAnswer: 'C', explanation: 'Automation ensures consistent configuration and reduces human error.', topic: 'Automation' },
+            { questionText: 'Which tool is agentless and uses YAML?', options: ['Chef', 'Puppet', 'Ansible', 'SaltStack'], correctAnswer: 'C', explanation: 'Ansible is agentless and uses YAML playbooks.', topic: 'Automation' },
+        ],
+        'Wireless': [
+            { questionText: 'What is the standard for Wi-Fi?', options: ['802.3', '802.1Q', '802.11', '802.1X'], correctAnswer: 'C', explanation: '802.11 is the IEEE standard for Wireless LANs.', topic: 'Wireless' },
+            { questionText: 'Which security protocol is considered most secure for Wi-Fi?', options: ['WEP', 'WPA', 'WPA2', 'WPA3'], correctAnswer: 'D', explanation: 'WPA3 is the latest and most secure Wi-Fi security standard.', topic: 'Wireless' },
+        ]
     };
 
     // Collect questions from ALL specified topics
     const allQuestions: any[] = [];
+    const availableKeys = Object.keys(topicQuestions);
 
     for (const topic of topics) {
-        const topicQs = topicQuestions[topic] || topicQuestions['OSI'] || [];
-        allQuestions.push(...topicQs);
+        // SMART MATCH LOGIC
+        // 1. Try exact match
+        let matchedKey = availableKeys.find(k => k.toLowerCase() === topic.toLowerCase());
+
+        // 2. Try partial match (key in topic or topic in key)
+        if (!matchedKey) {
+            matchedKey = availableKeys.find(k =>
+                topic.toLowerCase().includes(k.toLowerCase()) ||
+                k.toLowerCase().includes(topic.toLowerCase())
+            );
+        }
+
+        // 3. Special mapping for common terms
+        if (!matchedKey) {
+            const lowerT = topic.toLowerCase();
+            if (lowerT.includes('security') || lowerT.includes('vpn') || lowerT.includes('aaa')) matchedKey = 'Security';
+            else if (lowerT.includes('auto') || lowerT.includes('python') || lowerT.includes('api')) matchedKey = 'Automation';
+            else if (lowerT.includes('ip') || lowerT.includes('rout')) matchedKey = 'IPv4'; // Broad fallback for IP processing
+            else if (lowerT.includes('switch') || lowerT.includes('trunk')) matchedKey = 'VLAN';
+        }
+
+        // 4. Final Fallback: Random existing topic instead of defaulting to OSI
+        if (!matchedKey) {
+            matchedKey = availableKeys[Math.floor(Math.random() * availableKeys.length)];
+        }
+
+        const topicQs = topicQuestions[matchedKey] || topicQuestions['OSI'] || [];
+        // Inject correct topic name if we borrowed questions
+        const adjustedQs = topicQs.map(q => ({ ...q, topic: topic }));
+        allQuestions.push(...adjustedQs);
     }
 
-    // If no questions found, use general networking questions
+    // If no questions found (should be impossible now), use general networking questions
     if (allQuestions.length === 0) {
         allQuestions.push(
             { questionText: 'Which layer of the OSI model handles logical addressing?', options: ['Data Link', 'Network', 'Transport', 'Session'], correctAnswer: 'B', explanation: 'Layer 3 (Network) handles logical IP addressing.', topic: 'Networking' },
